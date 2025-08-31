@@ -4,13 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This repository contains educational materials demonstrating Bayesian Optimization concepts for business managers in the logistics sector. The project consists of interactive Jupyter notebooks that explain optimization concepts through visual demonstrations and interactive widgets.
+This repository contains educational materials demonstrating Bayesian Optimization concepts for business managers in the logistics sector. The project uses Quarto to generate an interactive presentation that explains optimization concepts through visual demonstrations.
 
 ## Key Components
 
-- **Interactive Notebooks**: Two main Jupyter notebooks (`test.ipynb` and `test2.ipynb`) containing Bayesian Optimization educational content
-- **Presentation Materials**: HTML slide export (`test2.slides.html`) for presentation purposes
-- **Virtual Environment**: Python environment managed in `.myenv/` directory with scientific computing dependencies
+- **slides.qmd**: Main Quarto document containing the presentation source
+- **_quarto.yml**: Quarto configuration for generating reveal.js presentations
+- **requirements.txt**: Python dependencies for running the embedded code
+- **Virtual Environment**: Python environment managed in `.myenv/` directory
 
 ## Development Environment
 
@@ -24,8 +25,7 @@ The project uses scientific Python libraries for optimization and visualization:
 - `numpy` - Numerical computing
 - `scikit-learn` - Machine learning algorithms (Gaussian Process Regressor)
 - `scipy` - Statistical functions
-- `plotly` - Interactive visualizations
-- `ipywidgets` - Jupyter notebook widgets for interactivity
+- `plotly` - Interactive visualizations for charts
 
 ### Development Commands
 ```bash
@@ -35,31 +35,31 @@ source .myenv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Start Jupyter (if jupyter server components are installed)
-jupyter notebook
+# Generate presentation
+quarto render slides.qmd
 
-# Work with notebooks interactively
-# Open test.ipynb or test2.ipynb in Jupyter environment
+# Preview during development
+quarto preview slides.qmd
 ```
 
-## Notebook Architecture
+## Presentation Architecture
 
-The notebooks implement interactive demonstrations of:
+The Quarto presentation implements visual demonstrations of:
 
 1. **Gaussian Process Regression**: "Smart Predictor" that models unknown functions and quantifies uncertainty
 2. **Acquisition Functions**: "Smart Decision Maker" that balances exploration vs exploitation
-3. **Bayesian Optimization Loop**: Complete optimization cycle with interactive widgets
+3. **Bayesian Optimization Process**: Complete 4-stage learning progression visualization
 
-### Interactive Components
-- Click-to-add data points on Gaussian Process visualizations
-- Button-driven Bayesian Optimization iterations
-- Real-time plot updates showing model predictions and uncertainties
-- Dual-plot displays showing both surrogate model and acquisition function
+### Visualization Components
+- Static Plotly charts showing optimization progression
+- Multi-panel figures demonstrating algorithm evolution
+- Comparative charts showing different sampling strategies
+- Business-focused explanations with logistics examples
 
 ## Educational Context
 
-The notebooks are designed for business managers without mathematical backgrounds, focusing on:
+The presentation is designed for business managers without mathematical backgrounds, focusing on:
 - Logistics optimization scenarios (route planning, warehouse efficiency)
 - Visual, intuitive explanations of complex optimization concepts
-- Interactive demos to build understanding through hands-on experience
+- Progressive learning through 4-stage visualization
 - Practical applications in supply chain and logistics operations
