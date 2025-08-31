@@ -1,7 +1,7 @@
 ---
 title: "🎯 Intelligent Decisions for Logistics"
 subtitle: "An Introduction to Bayesian Optimization"
-author: "Data Science Team"
+author: "Witek ten Hove"
 format:
   revealjs:
     theme: white
@@ -24,8 +24,8 @@ execute:
 ---
 ## Welcome {.center}
 
-**Target Audience:** Medior Business Managers in Logistics  
-**Duration:** 20 Minutes  
+**Target Audience:** Business Professionals in Logistics  
+**Duration:** 30 Minutes  
 **Interactive Experience:** Click, Explore, Learn
 
 <div style="text-align: center; font-size: 1.2em; color: #2E86AB; margin-top: 50px;">
@@ -459,9 +459,21 @@ best_next_x = x_range[np.argmax(ei)]
 fig_acq.add_trace(go.Scatter(x=x_range.ravel(), y=ei, mode='lines', name='Acquisition Function', line=dict(color='#8e44ad', width=3), fill='tozeroy', fillcolor='rgba(142, 68, 173, 0.1)'), row=2, col=1)
 fig_acq.add_vline(x=best_next_x, line_width=3, line_dash="dash", line_color="#f39c12", row=2, col=1, annotation_text="<b>Next Test!</b>", annotation_position="top", annotation_font_size=12)
 
-# --- MODIFIED ANNOTATIONS WITH SMALLER FONTS ---
-fig_acq.add_annotation(text="<b>EXPLOIT</b><br>High value likely", x=7.5, y=np.max(ei)*0.85, arrowhead=2, ax=0, ay=-30, font_size=11, row=2, col=1)
-fig_acq.add_annotation(text="<b>EXPLORE</b><br>High uncertainty", x=16, y=np.max(ei)*0.55, arrowhead=2, ax=0, ay=-30, font_size=11, row=2, col=1)
+# --- IMPROVED ANNOTATIONS WITH BETTER POSITIONING ---
+# Find the two main peaks in the acquisition function for proper positioning
+exploit_peak_idx = np.argmax(ei[:100])  # Look for peak in first half (exploitation)
+explore_peak_idx = 100 + np.argmax(ei[100:])  # Look for peak in second half (exploration)
+exploit_x = x_range[exploit_peak_idx][0]
+explore_x = x_range[explore_peak_idx][0]
+
+fig_acq.add_annotation(text="<b>EXPLOIT</b><br>High value likely", 
+                      x=exploit_x, y=ei[exploit_peak_idx]*0.9, 
+                      arrowhead=2, ax=0, ay=-35, font_size=11, 
+                      row=2, col=1, bgcolor="rgba(255,255,255,0.8)")
+fig_acq.add_annotation(text="<b>EXPLORE</b><br>High uncertainty", 
+                      x=explore_x, y=ei[explore_peak_idx]*0.9, 
+                      arrowhead=2, ax=0, ay=-35, font_size=11, 
+                      row=2, col=1, bgcolor="rgba(255,255,255,0.8)")
 
 # --- COMPACT LAYOUT MODIFICATIONS ---
 fig_acq.update_layout(
@@ -578,7 +590,7 @@ Notice how the algorithm first **explores** uncertain areas, then **exploits** p
 ## 📦 The Bottom Line
 
 ::: {.center style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 15px;"}
-When each test costs weeks and thousands of dollars,  
+When each test costs time and money,  
 **smart optimization isn't just nice to have—it's essential for staying competitive**
 :::
 
