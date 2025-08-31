@@ -1,0 +1,34 @@
+project:
+  type: default
+
+format:
+  revealjs:
+    theme: white
+    slide-number: true
+    transition: slide
+    background-transition: fade
+    incremental: false
+    width: 1600
+    height: 900
+    margin: 0.1
+    min-scale: 0.2
+    max-scale: 1.5
+    center: true
+    html-math-method: katex
+    embed-resources: true
+    fig-responsive: true
+    code-fold: true
+    code-summary: "Show code"
+    fig-format: retina
+    fig-dpi: 300
+    
+execute:
+  cache: false
+  freeze: auto
+  keep-ipynb: true
+  
+jupyter:
+  kernelspec:
+    name: "python3"
+    language: "python"
+    display_name: "Python 3 (ipykernel)"
