@@ -103,7 +103,7 @@ By the end of this session, you will:
 
 ::: {.center style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 15px; margin-top: 30px;"}
 ## 🤖 The Problem We're Solving
-In logistics, every test costs time, fuel, and money.  
+In logistics, every test costs time, energy, and money.  
 **How do we find the best solutions with the fewest expensive trials?**
 :::
 
@@ -572,7 +572,7 @@ Notice how the algorithm first **explores** uncertain areas, then **exploits** p
 <h3 style="color: #00529b; margin: 0 0 10px 0; font-size: 1em;">🔍 What You'll See</h3>
 <div style="font-size: 0.72em; line-height: 1.3;">
 <div style="margin-bottom: 6px;"><span style="color: #4682B4;">●</span> <strong>Blue cylinders:</strong> Customer locations</div>
-<div style="margin-bottom: 6px;"><span style="color: #00ced1;">●</span> <strong>Colored surface:</strong> AI's belief about costs</div>
+<div style="margin-bottom: 6px;"><span style="color: #2ecc71;">●</span> <strong>Colored surface:</strong> AI's belief about costs</div>
 <div style="margin-bottom: 6px;"><span style="color: #ff6347;">●</span> <strong>Red wireframe:</strong> True hidden cost landscape</div>
 <div><span style="color: #9370db;">●</span> <strong>Purple surface:</strong> Next test decision guide</div>
 </div>
@@ -592,7 +592,7 @@ Notice how the algorithm first **explores** uncertain areas, then **exploits** p
 </div>
 
 <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white; padding: 12px 25px; border-radius: 8px; text-align: center; margin-top: 20px;">
-<strong>💡 Key Discovery:</strong> Algorithm finds non-obvious optimal location away from customer center in ~15 tests vs 100+ random trials!
+<strong>💡 Key Discovery:</strong> Watch how the algorithm intelligently balances exploring uncertain areas with exploiting promising locations to find the optimal solution.
 </div>
 
 ## 🚛 Real-World Impact in Logistics

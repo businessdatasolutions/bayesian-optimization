@@ -1,0 +1,418 @@
+---
+title: "Technical Design Document: Bayesian Optimization Educational Materials"
+subtitle: "Mathematical Methodologies and Implementation Specifications"
+author: "Witek ten Hove"
+date: "2025-01-04"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    html-math-method: katex
+    theme: cosmo
+    code-fold: true
+    code-summary: "Show code"
+  pdf:
+    toc: true
+    number-sections: true
+    geometry: margin=1in
+    fontsize: 11pt
+execute:
+  echo: false
+  warning: false
+---
+
+# Executive Summary
+
+## Project Overview
+
+This Technical Design Document describes the mathematical foundations and implementation details of an educational system for teaching Bayesian Optimization concepts to business professionals in the logistics sector. The system comprises interactive presentations, 3D simulations, and hands-on demonstrations designed to make advanced optimization concepts accessible without requiring deep mathematical background.
+
+## Technical Objectives
+
+1. **Educational Effectiveness**: Implement mathematically rigorous Bayesian Optimization algorithms in an intuitive, visual format
+2. **Interactive Learning**: Provide real-time parameter adjustment and visualization of optimization processes
+3. **Business Relevance**: Demonstrate practical applications through realistic Distribution Center location optimization scenarios
+4. **Performance**: Ensure smooth real-time interaction with educational-grade implementations of complex algorithms
+
+## Target Specifications
+
+- **Audience**: Business professionals with minimal mathematical background
+- **Platform**: Web-based (HTML5/JavaScript) with cross-browser compatibility
+- **Performance**: Real-time 3D visualization at 30+ FPS on standard business laptops
+- **Mathematical Accuracy**: Educational-grade implementations maintaining core algorithm properties
+
+# System Architecture
+
+## Component Overview
+
+The system consists of three primary components:
+
+1. **Static Presentation Layer** (`slides.qmd`)
+   - Quarto-generated reveal.js presentation
+   - Interactive Plotly visualizations
+   - Progressive concept introduction
+
+2. **Interactive 3D Simulator** (`bo-simulator-fast.html`)
+   - Three.js-based real-time visualization
+   - JavaScript implementation of GP regression
+   - User parameter controls and interaction
+
+3. **Mathematical Engine**
+   - Gaussian Process regression with RBF kernels
+   - Upper Confidence Bound acquisition function
+   - Cholesky decomposition for numerical stability
+
+## Technology Stack
+
+- **Frontend**: HTML5, JavaScript ES6+, Three.js, CSS3
+- **Mathematical Libraries**: Custom implementations (educational transparency)
+- **Visualization**: Three.js (3D), Plotly.js (2D charts)
+- **Presentation**: Quarto + reveal.js
+- **Performance Optimization**: WebGL rendering, efficient matrix operations
+
+# Mathematical Foundations
+
+## Gaussian Process Regression
+
+### Definition and Setup
+
+A Gaussian Process is a collection of random variables, any finite number of which have a joint Gaussian distribution. For regression, we model an unknown function $f: \mathcal{X} \rightarrow \mathbb{R}$ as:
+
+$$f(\mathbf{x}) \sim \mathcal{GP}(m(\mathbf{x}), k(\mathbf{x}, \mathbf{x}'))$$
+
+where:
+- $m(\mathbf{x})$ is the mean function (typically set to 0)
+- $k(\mathbf{x}, \mathbf{x}')$ is the covariance function (kernel)
+
+### RBF Kernel Implementation
+
+We use the Radial Basis Function (RBF) kernel, also known as the squared exponential kernel:
+
+$$k(\mathbf{x}_i, \mathbf{x}_j) = \sigma_f^2 \exp\left(-\frac{||\mathbf{x}_i - \mathbf{x}_j||^2}{2\ell^2}\right)$$
+
+where:
+- $\sigma_f^2$ is the signal variance (set to 1.0 in implementation)
+- $\ell$ is the length scale parameter (set to 5.0 in implementation)
+- $||\cdot||^2$ denotes the squared Euclidean distance
+
+### Posterior Distribution
+
+Given training data $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^n$ where $y_i = f(\mathbf{x}_i) + \epsilon_i$ with $\epsilon_i \sim \mathcal{N}(0, \sigma_n^2)$, the posterior distribution at test point $\mathbf{x}_*$ is:
+
+$$f(\mathbf{x}_*) | \mathcal{D} \sim \mathcal{N}(\mu(\mathbf{x}_*), \sigma^2(\mathbf{x}_*))$$
+
+where the predictive mean and variance are:
+
+$$\mu(\mathbf{x}_*) = \mathbf{k}_*^T (\mathbf{K} + \sigma_n^2 \mathbf{I})^{-1} \mathbf{y}$$
+
+$$\sigma^2(\mathbf{x}_*) = k(\mathbf{x}_*, \mathbf{x}_*) - \mathbf{k}_*^T (\mathbf{K} + \sigma_n^2 \mathbf{I})^{-1} \mathbf{k}_*$$
+
+where:
+- $\mathbf{K}$ is the $n \times n$ kernel matrix with $K_{ij} = k(\mathbf{x}_i, \mathbf{x}_j)$
+- $\mathbf{k}_*$ is the $n \times 1$ vector with $[\mathbf{k}_*]_i = k(\mathbf{x}_i, \mathbf{x}_*)$
+- $\mathbf{y}$ is the vector of observed function values
+- $\sigma_n^2$ is the noise variance
+
+### Numerical Stability via Cholesky Decomposition
+
+To avoid numerical instability from matrix inversion, we use Cholesky decomposition. Given $\mathbf{L}\mathbf{L}^T = \mathbf{K} + \sigma_n^2 \mathbf{I}$, we solve:
+
+$$\mathbf{L}\boldsymbol{\alpha} = \mathbf{y} \quad \text{and} \quad \mathbf{L}\mathbf{v} = \mathbf{k}_*$$
+
+Then:
+$$\mu(\mathbf{x}_*) = \mathbf{v}^T \boldsymbol{\alpha}$$
+$$\sigma^2(\mathbf{x}_*) = k(\mathbf{x}_*, \mathbf{x}_*) - \mathbf{v}^T \mathbf{v}$$
+
+## Acquisition Functions
+
+### Upper Confidence Bound (UCB)
+
+The UCB acquisition function balances exploitation and exploration:
+
+$$\alpha_{\text{UCB}}(\mathbf{x}) = \mu(\mathbf{x}) + \beta \sigma(\mathbf{x})$$
+
+For minimization problems (as in our DC location scenario), we use:
+
+$$\alpha_{\text{UCB}}(\mathbf{x}) = -(\mu(\mathbf{x}) - \beta \sigma(\mathbf{x}))$$
+
+where:
+- $\mu(\mathbf{x})$ is the GP posterior mean
+- $\sigma(\mathbf{x})$ is the GP posterior standard deviation
+- $\beta > 0$ is the exploration parameter (user-adjustable in simulator)
+
+### Parameter $\beta$ Interpretation
+
+- **Low $\beta$ (exploitation)**: Focus on areas with low predicted mean
+- **High $\beta$ (exploration)**: Prioritize areas with high uncertainty
+- **Typical range**: $\beta \in [0.1, 10]$ in educational settings
+
+## Objective Function Design
+
+### Distribution Center Cost Model
+
+The true objective function combines multiple cost components:
+
+$$f(\mathbf{x}) = C_{\text{transport}}(\mathbf{x}) + C_{\text{terrain}}(\mathbf{x}) + C_{\text{optimal}}(\mathbf{x})$$
+
+#### Transportation Cost
+$$C_{\text{transport}}(\mathbf{x}) = \sum_{i=1}^{N} ||\mathbf{x} - \mathbf{c}_i||_2$$
+
+where $\mathbf{c}_i$ are customer locations and $N = 30$.
+
+#### Terrain Cost (High-cost zones)
+$$C_{\text{terrain}}(\mathbf{x}) = 200 \exp\left(-0.01 ||\mathbf{x} - \mathbf{p}_1||^2\right) + 300 \exp\left(-0.02 ||\mathbf{x} - \mathbf{p}_2||^2\right)$$
+
+where $\mathbf{p}_1$ and $\mathbf{p}_2$ are positions of terrain obstacles.
+
+#### Optimal Zone Benefit
+$$C_{\text{optimal}}(\mathbf{x}) = -500 \exp\left(-0.03 ||\mathbf{x} - \mathbf{o}||^2\right)$$
+
+where $\mathbf{o}$ is the location of a special low-cost zone, creating a non-obvious optimum.
+
+# Implementation Details
+
+## Gaussian Process Implementation
+
+### Core Algorithm Structure
+
+```javascript
+class SimpleGP {
+    constructor(kernelScale = 5.0) {
+        this.kernelScale = kernelScale;
+        this.X = null;
+        this.y = null;
+        this.L = null; // Cholesky factor
+        this.alpha = null; // Solution vector
+    }
+    
+    kernel(x1, x2) {
+        const sqdist = x1.reduce((acc, val, i) => 
+            acc + Math.pow(val - x2[i], 2), 0);
+        return Math.exp(-0.5 / this.kernelScale ** 2 * sqdist);
+    }
+}
+```
+
+### Cholesky Decomposition Implementation
+
+The implementation uses a numerically stable Cholesky decomposition:
+
+```javascript
+cholesky(A) {
+    const n = A.length;
+    const L = Array(n).fill(0).map(() => Array(n).fill(0));
+    
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j <= i; j++) {
+            let sum = 0;
+            for (let k = 0; k < j; k++) {
+                sum += L[i][k] * L[j][k];
+            }
+            if (i === j) {
+                const d = A[i][i] - sum;
+                if (d <= 0) throw new Error("Matrix not positive definite");
+                L[i][j] = Math.sqrt(d);
+            } else {
+                L[i][j] = (A[i][j] - sum) / L[j][j];
+            }
+        }
+    }
+    return L;
+}
+```
+
+## 3D Visualization Pipeline
+
+### Surface Generation
+
+The 3D surfaces are generated using Three.js PlaneGeometry with function evaluation at vertices:
+
+1. **Grid Generation**: Create $n \times n$ grid of points in domain $[-25, 25] \times [-25, 25]$
+2. **Function Evaluation**: Evaluate GP mean/std or acquisition function at each grid point
+3. **Vertex Coloring**: Map uncertainty values to color gradients
+4. **Normal Computation**: Calculate vertex normals for lighting
+
+### Real-time Updates
+
+Surface updates are optimized for real-time interaction:
+
+- **Lazy Evaluation**: Only recompute changed surfaces
+- **Vertex Buffer Updates**: Direct modification of GPU vertex buffers
+- **Render-on-Change**: Triggered rendering instead of continuous loops
+
+## Performance Optimizations
+
+### Computational Complexity
+
+- **GP Training**: $O(n^3)$ for Cholesky decomposition, $O(n^2)$ storage
+- **GP Prediction**: $O(n)$ per prediction after preprocessing
+- **Surface Updates**: $O(m^2)$ where $m$ is grid resolution (default: 25)
+
+### Memory Management
+
+- **Matrix Reuse**: Reuse allocated matrices to minimize garbage collection
+- **Sparse Updates**: Only update modified surface vertices
+- **Progressive Loading**: Initialize components asynchronously
+
+# Educational Design Principles
+
+## Progressive Complexity
+
+The educational sequence follows Bloom's taxonomy:
+
+1. **Remember**: Basic concepts (black-box, expensive evaluation)
+2. **Understand**: Component roles (predictor, decision maker)
+3. **Apply**: Interactive parameter adjustment
+4. **Analyze**: Compare different strategies (exploration vs exploitation)
+5. **Evaluate**: Assess performance in realistic scenarios
+6. **Create**: Experiment with custom parameter settings
+
+## Mathematical Transparency
+
+While maintaining educational accessibility:
+
+- **Simplified Notation**: Use intuitive variable names in interface
+- **Visual Correspondence**: Direct mapping between math concepts and visual elements
+- **Interactive Exploration**: Parameter sliders with immediate visual feedback
+
+## Business Context Integration
+
+Every mathematical concept is grounded in business reality:
+
+- **Cost Functions**: Realistic transportation and operational costs
+- **Decision Scenarios**: Authentic logistics optimization challenges
+- **Performance Metrics**: Business-relevant KPIs (number of studies, cost savings)
+
+# Testing and Validation
+
+## Mathematical Correctness
+
+### GP Regression Validation
+- **Known Function Tests**: Verify GP convergence on analytical functions
+- **Noise Handling**: Validate posterior uncertainty with controlled noise levels
+- **Kernel Properties**: Ensure RBF kernel maintains positive definiteness
+
+### Optimization Performance
+- **Convergence Testing**: Verify convergence to global optimum within expected iterations
+- **Exploration-Exploitation Balance**: Validate UCB parameter effects
+- **Comparative Analysis**: Compare with random sampling baseline
+
+## Numerical Stability
+
+### Matrix Operations
+- **Condition Number Monitoring**: Track kernel matrix conditioning
+- **Cholesky Stability**: Verify decomposition accuracy with residual analysis
+- **Precision Testing**: Validate accuracy across different floating-point precisions
+
+## User Experience Testing
+
+### Performance Benchmarks
+- **Frame Rate**: Maintain >30 FPS on target hardware
+- **Response Time**: <100ms for parameter adjustments
+- **Memory Usage**: <500MB total memory footprint
+
+### Educational Effectiveness
+- **Learning Objective Assessment**: Pre/post understanding measurements
+- **Interaction Analytics**: Track user engagement with different components
+- **Cognitive Load**: Ensure information density remains manageable
+
+# Deployment and Maintenance
+
+## Browser Compatibility
+
+### Target Browsers
+- Chrome/Chromium 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+### Feature Detection
+```javascript
+// WebGL support verification
+const canvas = document.createElement('canvas');
+const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+if (!gl) {
+    // Fallback to 2D visualization
+}
+```
+
+## Performance Monitoring
+
+### Client-side Metrics
+- **Frame Rate**: Monitor WebGL rendering performance
+- **Memory Usage**: Track JavaScript heap size
+- **Load Times**: Measure initial page load and resource loading
+
+### Error Handling
+- **Matrix Singularity**: Graceful degradation when GP becomes unstable
+- **Browser Limits**: Detect and adapt to device capabilities
+- **Network Issues**: Offline capability for core functionality
+
+# Appendices
+
+## A. Mathematical Proofs
+
+### A.1 GP Posterior Derivation
+
+Given the GP prior $f(\mathbf{x}) \sim \mathcal{GP}(0, k(\mathbf{x}, \mathbf{x}'))$ and likelihood $y_i = f(\mathbf{x}_i) + \epsilon_i$ where $\epsilon_i \sim \mathcal{N}(0, \sigma_n^2)$, the joint distribution is:
+
+$$\begin{pmatrix} \mathbf{y} \\ f_* \end{pmatrix} \sim \mathcal{N}\left(\mathbf{0}, \begin{pmatrix} \mathbf{K} + \sigma_n^2\mathbf{I} & \mathbf{k}_* \\ \mathbf{k}_*^T & k_{**} \end{pmatrix}\right)$$
+
+Using the conditional distribution formula for multivariate Gaussians:
+
+$$f_* | \mathbf{y} \sim \mathcal{N}(\mathbf{k}_*^T(\mathbf{K} + \sigma_n^2\mathbf{I})^{-1}\mathbf{y}, k_{**} - \mathbf{k}_*^T(\mathbf{K} + \sigma_n^2\mathbf{I})^{-1}\mathbf{k}_*)$$
+
+## B. Algorithm Pseudocode
+
+### B.1 Bayesian Optimization Loop
+
+```
+Algorithm: Bayesian Optimization for DC Location
+
+Input: Domain D, Objective f, Initial points X₀, Budget T
+Output: Optimal location x*
+
+1. Initialize GP with X₀ and y₀ = f(X₀)
+2. For t = 1 to T:
+   a. Fit GP to current data (X_{t-1}, y_{t-1})
+   b. Compute acquisition function α(x) over domain D
+   c. Find x_t = argmax α(x)
+   d. Evaluate y_t = f(x_t)
+   e. Augment data: X_t = X_{t-1} ∪ {x_t}, y_t = y_{t-1} ∪ {y_t}
+3. Return x* = argmin y_t over all evaluated points
+```
+
+### B.2 GP Prediction Algorithm
+
+```
+Algorithm: GP Prediction with Cholesky Decomposition
+
+Input: Training data (X, y), Test point x*, Kernel k, Noise σ²
+Output: Predictive mean μ*, variance σ²*
+
+1. Compute kernel matrix K with K_ij = k(x_i, x_j)
+2. Add noise: K = K + σ²I
+3. Compute Cholesky decomposition: L = chol(K)
+4. Solve Lα = y for α
+5. Compute k* with [k*]_i = k(x_i, x*)
+6. Solve Lv = k* for v
+7. Return μ* = v^T α, σ²* = k(x*, x*) - v^T v
+```
+
+## C. References and Further Reading
+
+1. Rasmussen, C. E., & Williams, C. K. (2006). *Gaussian processes for machine learning*. MIT Press.
+
+2. Srinivas, N., Krause, A., Kakade, S. M., & Seeger, M. (2009). Gaussian process optimization in the bandit setting: No regret and experimental design. *ICML*.
+
+3. Shahriari, B., Swersky, K., Wang, Z., Adams, R. P., & de Freitas, N. (2015). Taking the human out of the loop: A review of Bayesian optimization. *Proceedings of the IEEE*.
+
+4. Frazier, P. I. (2018). A tutorial on Bayesian optimization. *arXiv preprint arXiv:1807.02811*.
+
+---
+
+**Document Version**: 1.0  
+**Last Updated**: January 4, 2025  
+**Classification**: Technical Documentation  
+**Distribution**: Educational Use
