@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Bayesian Optimization for DC Location</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+        }
+        #info-panel {
+            width: 380px;
+            background-color: #ffffff;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+        .tab-header {
+            display: flex;
+            flex-shrink: 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .tab-button {
+            flex-grow: 1;
+            padding: 15px 10px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 1em;
+            font-weight: 600;
+            color: #495057;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .tab-button:hover {
+            background-color: #e9ecef;
+        }
+        .tab-button.active {
+            color: #00529b;
+            border-bottom: 3px solid #007bff;
+            background-color: #fff;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        h1, h2, h3 {
+            margin-top: 0;
+            color: #00529b;
+        }
+        h1 { font-size: 1.6em; }
+        h2 { font-size: 1.2em; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 15px; }
+        .control-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9em; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+            transition: background-color 0.2s;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #a0c7e4; cursor: not-allowed; }
+        .button-group { display: flex; gap: 10px; }
+        input[type="range"] { width: 100%; }
+        .output-box {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+        .output-box p { margin: 0 0 8px 0; font-size: 0.9em; }
+        .output-box span { font-weight: 600; color: #00529b; }
+        #canvas-container {
+            flex-grow: 1;
+            height: 100vh;
+            position: relative;
+        }
+        #loading-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            z-index: 100;
+        }
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-size: 0.8em;
+        }
+        .legend-item { display: flex; align-items: center; margin-bottom: 5px; }
+        .legend-color { width: 15px; height: 15px; margin-right: 8px; border: 1px solid #ccc; }
+        
+        /* Tutorial styles */
+        .tutorial-section { margin-bottom: 25px; }
+        .tutorial-section h3 { font-size: 1.1em; color: #007bff; }
+        .tutorial-section p { font-size: 0.9em; line-height: 1.5; margin: 10px 0; }
+        .tutorial-section ul { padding-left: 20px; font-size: 0.9em; line-height: 1.5; margin-top: 10px; }
+        .tutorial-section li { margin-bottom: 8px; }
+        .tutorial-section strong { color: #333; }
+        .tutorial-section .icon { display: inline-block; width: 15px; height: 15px; margin-right: 5px; vertical-align: middle; border: 1px solid #ccc;}
+
+    </style>
+</head>
+<body>
+
+    <div id="info-panel">
+        <div class="tab-header">
+            <button class="tab-button active" data-tab="controls">Controls</button>
+            <button class="tab-button" data-tab="tutorial">Tutorial</button>
+        </div>
+
+        <div id="tab-controls" class="tab-content active">
+            <h1>Bayesian Optimization Simulator</h1>
+            <p style="font-size: 0.9em; margin-bottom: 20px;">Find the optimal Distribution Center (DC) location that minimizes total transportation cost.</p>
+
+            <div class="control-group">
+                <h2>Simulation Controls</h2>
+                <div class="button-group">
+                    <button id="reset-btn">Initialize / Reset</button>
+                </div>
+                <div class="button-group" style="margin-top:10px;">
+                    <button id="step-btn" disabled>Run One Step</button>
+                    <button id="run-btn" disabled>Run Automatically</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h2>Parameters</h2>
+                <label for="noise-slider">Observation Noise: <span id="noise-value">0.10</span></label>
+                <input type="range" id="noise-slider" min="0" max="1" step="0.05" value="0.1">
+                <label for="beta-slider">Exploration (Beta): <span id="beta-value">2.5</span></label>
+                <input type="range" id="beta-slider" min="0.1" max="10" step="0.1" value="2.5">
+                <label for="quality-slider">Graphics Quality: <span id="quality-value">25</span></label>
+                <input type="range" id="quality-slider" min="10" max="50" step="5" value="25">
+                <label for="max-runs-slider">Max Auto Runs: <span id="max-runs-value">50</span></label>
+                <input type="range" id="max-runs-slider" min="10" max="150" step="10" value="50">
+            </div>
+            
+            <div class="control-group">
+                <h2>View Options</h2>
+                <div class="button-group">
+                   <button id="toggle-truth-btn">Toggle True Cost</button>
+                   <button id="toggle-surrogate-btn">Toggle Belief</button>
+                </div>
+                 <div class="button-group" style="margin-top:10px;">
+                    <button id="toggle-acq-btn">Toggle Decision</button>
+                </div>
+            </div>
+
+            <div class="output-box">
+                <h3>Simulation Status</h3>
+                <p>Iteration: <span id="iteration-count">0</span></p>
+                <p>Feasibility Studies: <span id="samples-count">0</span></p>
+                <p>Best Cost Found: <span id="best-cost">N/A</span></p>
+                <p>Optimal Location: <span id="best-location">N/A</span></p>
+            </div>
+        </div>
+
+        <div id="tab-tutorial" class="tab-content">
+            <h1>Simulator Tutorial</h1>
+
+            <div class="tutorial-section">
+                <h3>The Challenge: Finding the Hidden Optimum</h3>
+                <p>This simulation demonstrates how <strong>Bayesian Optimization (BO)</strong> intelligently finds the best location for a Distribution Center (DC). The goal is to find the location with the absolute lowest total cost—the lowest valley on the map—by running as few expensive "feasibility studies" (tests) as possible.</p>
+                <p>Crucially, the "best" location isn't obvious! We've designed the cost to include a hidden "low-cost zone" away from the center, making this a challenging, realistic problem where random guessing would fail.</p>
+            </div>
+
+            <div class="tutorial-section">
+                <h3>The 3D View Explained</h3>
+                <ul>
+                    <li><span class="icon" style="background: #4682B4;"></span><strong>Blue Cylinders:</strong> Your customer locations. Distance to these is a major cost factor.</li>
+                    <li><strong>Surfaces (Toggle them in Controls):</strong>
+                        <ul>
+                            <li><strong>True Cost (Red Wireframe):</strong> This is the <i>real, hidden cost landscape</i>. In the real world, this is what you're trying to discover. The lowest valley is the true best answer. Notice how it's not in the center of the customers!</li>
+                            <li><strong>Belief (Colored Surface):</strong> This is the AI's "Smart Predictor"—its best guess about the cost landscape based on the tests so far. Blue means it predicts low cost, while yellow means it is very <strong>uncertain</strong> about that area.</li>
+                            <li><strong>Decision (Purple Surface):</strong> This is the AI's "Smart Decision Maker." It shows where it would be most valuable to test next. High peaks represent a great balance of expected low cost (exploitation) and high uncertainty (exploration).</li>
+                        </ul>
+                    </li>
+                    <li><strong>Markers:</strong>
+                        <ul>
+                           <li><span class="icon" style="background: #FFD700;"></span><strong>Yellow Spheres:</strong> Locations where a test (feasibility study) has already been run.</li>
+                           <li><span class="icon" style="background: #32CD32;"></span><strong>Green Sphere:</strong> The best location found <i>so far</i> among all the tests.</li>
+                           <li><span class="icon" style="background: #FF4500;"></span><strong>Red Sphere:</strong> The location the AI has decided to test next.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="tutorial-section">
+                <h3>How to Use It</h3>
+                <p>
+                    <strong>1. Initialize / Reset:</strong> Starts the simulation. It runs two random tests to give the AI its first clues.
+                </p>
+                <p>
+                    <strong>2. Run One Step:</strong> Click this to watch the AI perform one cycle: It updates its belief, uses the purple decision surface to pick the next best spot (red marker), and runs a new test.
+                </p>
+                <p>
+                    <strong>3. Run Automatically:</strong> Let the simulation run on its own up to the "Max Auto Runs" limit.
+                </p>
+                 <p>
+                    <strong>4. Experiment with Parameters:</strong>
+                    <ul>
+                      <li><strong>Observation Noise:</strong> Simulates real-world measurement errors. At 0.00, every test is perfect and yellow dots will land exactly on the red wireframe. At higher values, test results are less reliable, making the problem harder.</li>
+                      <li><strong>Exploration (Beta):</strong> This is the core strategy control. A <strong>high Beta</strong> makes the AI adventurous, prioritizing exploring uncertain (yellow) areas. A <strong>low Beta</strong> makes it conservative, focusing only on exploiting areas it already thinks are good (the lowest blue valleys).</li>
+                      <li><strong>Graphics Quality:</strong> Lower this for smoother performance on less powerful computers. It doesn't affect the math.</li>
+                      <li><strong>Max Auto Runs:</strong> Sets the number of iterations for the "Run Automatically" mode.</li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="canvas-container">
+        <div id="loading-overlay">Loading 3D Scene...</div>
+        <div class="legend">
+            <div class="legend-item"><div class="legend-color" style="background: #4682B4;"></div>Customer Location</div>
+            <div class="legend-item"><div class="legend-color" style="background: #FFD700;"></div>Sampled DC Location</div>
+            <div class="legend-item"><div class="legend-color" style="background: #32CD32;"></div>Best Location Found</div>
+            <div class="legend-item"><div class="legend-color" style="background: #FF4500;"></div>Next Location to Test</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script type="module">
+        // --- Core Classes & Setup ---
+        const SCENE_SIZE = 50;
+        let GRID_RESOLUTION = 25; // Default lowered for performance
+        
+        let scene, camera, renderer, controls;
+        let trueCostSurface, surrogateSurface, acquisitionSurface;
+        let customerMarkers = new THREE.Group();
+        let sampleMarkers = new THREE.Group();
+        let nextMarker, bestMarker;
+
+        const UNCERTAINTY_COLOR = new THREE.Color(0xffff00);
+        const CERTAINTY_COLOR = new THREE.Color(0x00ced1);
+
+        let boState = {
+            isRunning: false,
+            isAutoRunning: false,
+            samplesX: [],
+            samplesY: [],
+            gp: null,
+            noise: 0.1,
+            beta: 2.5,
+            iteration: 0,
+            bestCostFound: Infinity,
+            bestLocationFound: null,
+            maxIterations: 50,
+        };
+
+        // --- UI Elements ---
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const iterationCountEl = document.getElementById('iteration-count');
+        const samplesCountEl = document.getElementById('samples-count');
+        const bestCostEl = document.getElementById('best-cost');
+        const bestLocationEl = document.getElementById('best-location');
+        const noiseSlider = document.getElementById('noise-slider');
+        const betaSlider = document.getElementById('beta-slider');
+        const qualitySlider = document.getElementById('quality-slider');
+        const maxRunsSlider = document.getElementById('max-runs-slider');
+        const noiseValueEl = document.getElementById('noise-value');
+        const betaValueEl = document.getElementById('beta-value');
+        const qualityValueEl = document.getElementById('quality-value');
+        const maxRunsValueEl = document.getElementById('max-runs-value');
+        
+        const resetBtn = document.getElementById('reset-btn');
+        const stepBtn = document.getElementById('step-btn');
+        const runBtn = document.getElementById('run-btn');
+        
+        const toggleTruthBtn = document.getElementById('toggle-truth-btn');
+        const toggleSurrogateBtn = document.getElementById('toggle-surrogate-btn');
+        const toggleAcqBtn = document.getElementById('toggle-acq-btn');
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+
+        // --- True Objective Function (The "Black Box") ---
+        const CUSTOMER_LOCATIONS = Array.from({ length: 30 }, () => 
+            new THREE.Vector2(
+                (Math.random() - 0.5) * SCENE_SIZE * 0.9,
+                (Math.random() - 0.5) * SCENE_SIZE * 0.9
+            )
+        );
+
+        function trueObjectiveFunction(x, z) {
+            let distanceCost = CUSTOMER_LOCATIONS.reduce((acc, loc) => {
+                return acc + Math.sqrt(Math.pow(x - loc.x, 2) + Math.pow(z - loc.y, 2));
+            }, 0);
+
+            // High-cost "mountains"
+            let terrainCost = 
+                200 * Math.exp(-0.01 * (Math.pow(x - 15, 2) + Math.pow(z - 15, 2))) +
+                300 * Math.exp(-0.02 * (Math.pow(x + 20, 2) + Math.pow(z + 10, 2)));
+
+            // Add a non-obvious low-cost "valley" away from the center
+            let optimalZoneBenefit = 
+                -500 * Math.exp(-0.03 * (Math.pow(x - 20, 2) + Math.pow(z + 18, 2)));
+
+            return (distanceCost + terrainCost + optimalZoneBenefit) / 20; // Normalize
+        }
+        
+        // --- Gaussian Process (GP) Implementation ---
+        class SimpleGP {
+            constructor(kernelScale = 5.0) {
+                this.X = null;
+                this.y = null;
+                this.L = null; // For Cholesky decomposition
+                this.alpha = null;
+                this.kernelScale = kernelScale;
+            }
+
+            kernel(x1, x2) {
+                const sqdist = x1.reduce((acc, val, i) => acc + Math.pow(val - x2[i], 2), 0);
+                return Math.exp(-0.5 / this.kernelScale ** 2 * sqdist);
+            }
+
+            fit(X, y) {
+                this.X = X;
+                this.y = y;
+                const n = X.length;
+                const K = Array(n).fill(0).map(() => Array(n).fill(0));
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        K[i][j] = this.kernel(X[i], X[j]);
+                    }
+                    K[i][i] += 1e-5; // Jitter for stability
+                }
+                
+                try {
+                    this.L = this.cholesky(K);
+                    this.alpha = this.solve(K, y);
+                } catch(e) {
+                    console.error("Cholesky decomposition failed. GP might be unstable.", e);
+                    this.alpha = null; // Invalidate GP
+                    this.L = null;
+                }
+            }
+
+            predict(X_test) {
+                if (!this.alpha) return { mean: Array(X_test.length).fill(0), std: Array(X_test.length).fill(1) };
+
+                const means = [];
+                const stds = [];
+                
+                for (const x_star of X_test) {
+                    const k_star = this.X.map(xi => this.kernel(x_star, xi));
+                    const mean = k_star.reduce((acc, val, i) => acc + val * this.alpha[i], 0);
+                    
+                    const v = this.solveLowerTriangular(this.L, k_star);
+                    const variance = this.kernel(x_star, x_star) - v.reduce((acc, val) => acc + val*val, 0);
+
+                    means.push(mean);
+                    stds.push(Math.sqrt(Math.max(0, variance)));
+                }
+                return { mean: means, std: stds };
+            }
+            
+            // --- Optimized Math Helpers ---
+            cholesky(A) {
+                const n = A.length;
+                const L = Array(n).fill(0).map(() => Array(n).fill(0));
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j <= i; j++) {
+                        let sum = 0;
+                        for (let k = 0; k < j; k++) {
+                            sum += L[i][k] * L[j][k];
+                        }
+                        if (i === j) {
+                            const d = A[i][i] - sum;
+                            if (d <= 0) throw new Error("Matrix is not positive definite");
+                            L[i][j] = Math.sqrt(d);
+                        } else {
+                            L[i][j] = (A[i][j] - sum) / L[j][j];
+                        }
+                    }
+                }
+                return L;
+            }
+
+            solveLowerTriangular(L, b) {
+                const n = L.length;
+                const x = Array(n).fill(0);
+                for (let i = 0; i < n; i++) {
+                    let sum = 0;
+                    for (let j = 0; j < i; j++) {
+                        sum += L[i][j] * x[j];
+                    }
+                    x[i] = (b[i] - sum) / L[i][i];
+                }
+                return x;
+            }
+
+            solveUpperTriangular(U, b) {
+                const n = U.length;
+                const x = Array(n).fill(0);
+                for (let i = n - 1; i >= 0; i--) {
+                    let sum = 0;
+                    for (let j = i + 1; j < n; j++) {
+                        sum += U[i][j] * x[j];
+                    }
+                    x[i] = (b[i] - sum) / U[i][i];
+                }
+                return x;
+            }
+            
+            transpose(M) {
+                const n = M.length;
+                const T = Array(n).fill(0).map(() => Array(n).fill(0));
+                for(let i=0; i<n; i++) for(let j=0; j<n; j++) T[j][i] = M[i][j];
+                return T;
+            }
+
+            solve(A, b) {
+                const L = this.cholesky(A);
+                const Lt = this.transpose(L);
+                const y = this.solveLowerTriangular(L, b);
+                return this.solveUpperTriangular(Lt, y);
+            }
+        }
+
+
+        // --- 3D Scene Initialization ---
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f2f5);
+            scene.fog = new THREE.Fog(0xf0f2f5, 100, 250);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 80, 80);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: false }); // Disabled for performance
+            const container = document.getElementById('canvas-container');
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio > 1 ? 1.5 : 1); // Clamp pixel ratio
+            renderer.shadowMap.enabled = false; // Disabled for performance
+            container.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+            dirLight.position.set(-30, 50, -30);
+            scene.add(dirLight);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.addEventListener('change', render);
+
+            const gridHelper = new THREE.GridHelper(SCENE_SIZE * 2, SCENE_SIZE * 2, 0xcccccc, 0xcccccc);
+            scene.add(gridHelper);
+            
+            CUSTOMER_LOCATIONS.forEach(loc => {
+                const geometry = new THREE.CylinderGeometry(0.5, 0.5, 2, 16);
+                const material = new THREE.MeshLambertMaterial({ color: 0x4682B4 });
+                const cylinder = new THREE.Mesh(geometry, material);
+                cylinder.position.set(loc.x, 1, loc.y);
+                customerMarkers.add(cylinder);
+            });
+            scene.add(customerMarkers);
+            
+            rebuildSurfaces(GRID_RESOLUTION);
+            
+            scene.add(sampleMarkers);
+
+            window.addEventListener('resize', onWindowResize);
+            loadingOverlay.style.display = 'none';
+        }
+        
+        function rebuildSurfaces(resolution) {
+            if(trueCostSurface) scene.remove(trueCostSurface);
+            if(surrogateSurface) scene.remove(surrogateSurface);
+            if(acquisitionSurface) scene.remove(acquisitionSurface);
+
+            trueCostSurface = createSurface(resolution, trueObjectiveFunction, new THREE.MeshStandardMaterial({ color: 0xff6347, wireframe: true, transparent: true, opacity: 0.5, side: THREE.DoubleSide }));
+            trueCostSurface.visible = false;
+            scene.add(trueCostSurface);
+
+            surrogateSurface = createSurface(resolution, (x,z) => 0, new THREE.MeshStandardMaterial({ color: 0x00ced1, vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: 0.8 }));
+            surrogateSurface.visible = true;
+            scene.add(surrogateSurface);
+            
+            acquisitionSurface = createSurface(resolution, (x,z) => 0, new THREE.MeshStandardMaterial({ color: 0x9370db, wireframe: false, side: THREE.DoubleSide, transparent: true, opacity: 0.6 }));
+            acquisitionSurface.visible = false;
+            scene.add(acquisitionSurface);
+            render();
+        }
+
+        function createSurface(resolution, func, material) {
+            const geometry = new THREE.PlaneGeometry(SCENE_SIZE, SCENE_SIZE, resolution, resolution);
+            const vertices = geometry.attributes.position.array;
+            for (let i = 0; i < vertices.length; i += 3) {
+                vertices[i + 2] = func(vertices[i], -vertices[i + 1]);
+            }
+            geometry.attributes.position.needsUpdate = true;
+            geometry.computeVertexNormals();
+            
+            const surface = new THREE.Mesh(geometry, material);
+            surface.rotation.x = -Math.PI / 2;
+            return surface;
+        }
+        
+        function updateSurface(surface, func) {
+             const vertices = surface.geometry.attributes.position.array;
+             for (let i = 0; i < vertices.length; i += 3) {
+                vertices[i + 2] = func(vertices[i], -vertices[i + 1]);
+            }
+            surface.geometry.attributes.position.needsUpdate = true;
+            surface.geometry.computeVertexNormals();
+        }
+
+        function updateSurrogateSurface(meanFunc, stdFunc) {
+            const geometry = surrogateSurface.geometry;
+            const vertices = geometry.attributes.position.array;
+            
+            if (!geometry.attributes.color) {
+                const colors = new Float32Array(vertices.length);
+                geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            }
+            const colors = geometry.attributes.color.array;
+
+            let maxStd = 0;
+            const stds = [];
+            for (let i = 0; i < vertices.length; i += 3) {
+                const std = stdFunc(vertices[i], -vertices[i + 1]);
+                stds.push(std);
+                if (std > maxStd) maxStd = std;
+            }
+
+            for (let i = 0, j=0; i < vertices.length; i += 3, j++) {
+                vertices[i + 2] = meanFunc(vertices[i], -vertices[i + 1]);
+                const t = maxStd > 0 ? Math.min(stds[j] / maxStd, 1.0) : 0;
+                const color = CERTAINTY_COLOR.clone().lerp(UNCERTAINTY_COLOR, t);
+                colors[i] = color.r;
+                colors[i + 1] = color.g;
+                colors[i + 2] = color.b;
+            }
+
+            geometry.attributes.color.needsUpdate = true;
+            geometry.attributes.position.needsUpdate = true;
+            geometry.computeVertexNormals();
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            render();
+        }
+
+        function render() {
+             renderer.render(scene, camera);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update(); // Only update controls, render is called on 'change'
+        }
+
+        // --- Bayesian Optimization Logic ---
+        function resetSimulation() {
+            boState.isAutoRunning = false;
+            boState.isRunning = true;
+            boState.samplesX = [];
+            boState.samplesY = [];
+            boState.iteration = 0;
+            boState.bestCostFound = Infinity;
+            boState.bestLocationFound = null;
+
+            while(sampleMarkers.children.length > 0){ 
+                sampleMarkers.remove(sampleMarkers.children[0]); 
+            }
+            if (nextMarker) scene.remove(nextMarker);
+            if (bestMarker) scene.remove(bestMarker);
+
+            for (let i = 0; i < 2; i++) {
+                const x = (Math.random() - 0.5) * SCENE_SIZE;
+                const z = (Math.random() - 0.5) * SCENE_SIZE;
+                addSample([x, z]);
+            }
+
+            runBOIteration();
+            updateUI();
+            
+            stepBtn.disabled = false;
+            runBtn.disabled = false;
+            runBtn.textContent = "Run Automatically";
+        }
+        
+        function addSample(point) {
+            const [x, z] = point;
+            const trueValue = trueObjectiveFunction(x, z);
+            const noisyValue = trueValue + (Math.random() - 0.5) * boState.noise * 50;
+            
+            const observedValue = noisyValue;
+            
+            boState.samplesX.push([x, z]);
+            boState.samplesY.push(observedValue);
+            
+            const geometry = new THREE.SphereGeometry(0.8, 16, 16);
+            const material = new THREE.MeshStandardMaterial({ color: 0xFFD700 });
+            const sphere = new THREE.Mesh(geometry, material);
+            
+            const displayYPosition = (boState.noise === 0) ? trueValue : observedValue;
+            sphere.position.set(x, displayYPosition, z);
+            sampleMarkers.add(sphere);
+            
+            if (observedValue < boState.bestCostFound) {
+                boState.bestCostFound = observedValue;
+                boState.bestLocationFound = [x, z];
+
+                if (bestMarker) scene.remove(bestMarker);
+                const bestGeom = new THREE.SphereGeometry(1, 16, 16);
+                const bestMat = new THREE.MeshStandardMaterial({ color: 0x32CD32, emissive: 0x32CD32 });
+                bestMarker = new THREE.Mesh(bestGeom, bestMat);
+                bestMarker.position.set(x, displayYPosition, z);
+                scene.add(bestMarker);
+            }
+            render();
+        }
+        
+        function runBOIteration() {
+            boState.iteration++;
+            
+            boState.gp = new SimpleGP();
+            boState.gp.fit(boState.samplesX, boState.samplesY);
+
+            const gridPoints = [];
+            const vertices = surrogateSurface.geometry.attributes.position.array;
+             for (let i = 0; i < vertices.length; i += 3) {
+                gridPoints.push([vertices[i], -vertices[i + 1]]);
+            }
+            const prediction = boState.gp.predict(gridPoints);
+            
+            updateSurrogateSurface(
+                (x, z) => boState.gp.predict([[x, z]]).mean[0],
+                (x, z) => boState.gp.predict([[x, z]]).std[0]
+            );
+
+            const acquisitionValues = prediction.mean.map((mean, i) => -(mean - boState.beta * prediction.std[i]));
+            
+            let maxAcqValue = -Infinity;
+            let nextPointIndex = -1;
+            
+            const minSqDist = 4;
+            for(let i=0; i < acquisitionValues.length; i++) {
+                let isFarEnough = true;
+                const [px, pz] = gridPoints[i];
+                for(const s of boState.samplesX) {
+                    if ((s[0]-px)**2 + (s[1]-pz)**2 < minSqDist) {
+                        isFarEnough = false;
+                        break;
+                    }
+                }
+                if (isFarEnough && acquisitionValues[i] > maxAcqValue) {
+                    maxAcqValue = acquisitionValues[i];
+                    nextPointIndex = i;
+                }
+            }
+            if (nextPointIndex === -1) {
+                 if(acquisitionValues.length > 0){
+                    let maxVal = -Infinity;
+                    let maxIdx = 0;
+                    for(let i=0; i<acquisitionValues.length; i++){
+                        if(acquisitionValues[i] > maxVal){
+                            maxVal = acquisitionValues[i];
+                            maxIdx = i;
+                        }
+                    }
+                    nextPointIndex = maxIdx;
+                } else {
+                    return; // Should not happen
+                }
+            }
+
+
+            const nextPointToSample = gridPoints[nextPointIndex];
+
+            updateSurface(acquisitionSurface, (x, z) => {
+                const pred = boState.gp.predict([[x,z]]);
+                return (pred.mean[0] - boState.beta * pred.std[0]) / 5;
+            });
+
+            if (nextMarker) scene.remove(nextMarker);
+            const nextGeom = new THREE.SphereGeometry(1, 16, 16);
+            const nextMat = new THREE.MeshStandardMaterial({ color: 0xFF4500, emissive: 0xFF4500 });
+            nextMarker = new THREE.Mesh(nextGeom, nextMat);
+            const predMean = boState.gp.predict([nextPointToSample]).mean[0];
+            nextMarker.position.set(nextPointToSample[0], predMean, nextPointToSample[1]);
+            scene.add(nextMarker);
+            
+            render();
+            return nextPointToSample;
+        }
+
+        function step() {
+            if (!boState.isRunning) return;
+            const nextPoint = runBOIteration();
+            if(!nextPoint) return;
+            setTimeout(() => {
+                 addSample(nextPoint);
+                 updateUI();
+            }, 500);
+        }
+
+        async function autoRun() {
+            if (!boState.isAutoRunning) return;
+            
+            step();
+            
+            await new Promise(r => setTimeout(r, 1500));
+            if (boState.iteration < boState.maxIterations && boState.isAutoRunning) {
+                autoRun();
+            } else {
+                boState.isAutoRunning = false;
+                runBtn.textContent = "Run Automatically";
+                updateUI();
+            }
+        }
+        
+        // --- UI Updates and Event Listeners ---
+        function updateUI() {
+            iterationCountEl.textContent = boState.iteration;
+            samplesCountEl.textContent = boState.samplesX.length;
+            if(boState.bestCostFound !== Infinity) {
+                bestCostEl.textContent = boState.bestCostFound.toFixed(2);
+                bestLocationEl.textContent = `(${boState.bestLocationFound[0].toFixed(1)}, ${boState.bestLocationFound[1].toFixed(1)})`;
+            } else {
+                bestCostEl.textContent = 'N/A';
+                bestLocationEl.textContent = 'N/A';
+            }
+            
+            noiseValueEl.textContent = parseFloat(noiseSlider.value).toFixed(2);
+            betaValueEl.textContent = parseFloat(betaSlider.value).toFixed(1);
+            qualityValueEl.textContent = qualitySlider.value;
+            maxRunsValueEl.textContent = maxRunsSlider.value;
+
+            stepBtn.disabled = boState.isAutoRunning;
+            runBtn.disabled = !boState.isRunning;
+        }
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+
+                button.classList.add('active');
+                document.getElementById('tab-' + button.dataset.tab).classList.add('active');
+            });
+        });
+        
+        noiseSlider.addEventListener('input', (e) => {
+            boState.noise = parseFloat(e.target.value);
+            updateUI();
+        });
+
+        betaSlider.addEventListener('input', (e) => {
+            boState.beta = parseFloat(e.target.value);
+            updateUI();
+            if(boState.isRunning) runBOIteration();
+        });
+
+        qualitySlider.addEventListener('input', (e) => {
+            GRID_RESOLUTION = parseInt(e.target.value);
+            updateUI();
+            rebuildSurfaces(GRID_RESOLUTION);
+            if (boState.isRunning) {
+                runBOIteration();
+            }
+        });
+        
+        maxRunsSlider.addEventListener('input', (e) => {
+            boState.maxIterations = parseInt(e.target.value);
+            updateUI();
+        });
+
+        resetBtn.addEventListener('click', resetSimulation);
+        stepBtn.addEventListener('click', step);
+        runBtn.addEventListener('click', () => {
+            if (boState.isAutoRunning) {
+                boState.isAutoRunning = false;
+                runBtn.textContent = "Run Automatically";
+            } else {
+                boState.isAutoRunning = true;
+                runBtn.textContent = "Stop";
+                autoRun();
+            }
+            updateUI();
+        });
+
+        toggleTruthBtn.addEventListener('click', () => { trueCostSurface.visible = !trueCostSurface.visible; render(); });
+        toggleSurrogateBtn.addEventListener('click', () => { surrogateSurface.visible = !surrogateSurface.visible; render(); });
+        toggleAcqBtn.addEventListener('click', () => { acquisitionSurface.visible = !acquisitionSurface.visible; render(); });
+
+
+        // --- Start Application ---
+        init();
+        animate();
+        render(); // Initial render
+    </script>
+
+</body>
+</html>
+

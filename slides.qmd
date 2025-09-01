@@ -553,6 +553,48 @@ fig_acq.show()
 Notice how the algorithm first **explores** uncertain areas, then **exploits** promising regions to find the optimum faster than random testing!
 :::
 
+## 🏭 See It In Action: Finding the Optimal DC Location
+<p style="text-align: center; font-size: 1.05em; margin: 10px 0 20px 0; color: #666;"><strong>Challenge:</strong> Find optimal DC location for 30 customers with minimal $50K feasibility studies</p>
+
+<div style="display: grid; grid-template-columns: 40% 30% 30%; gap: 20px; align-items: start;">
+
+<div style="text-align: center;">
+<img src="bo-optimizer.png" alt="3D Bayesian Optimization Visualization" style="width: 100%; max-width: 420px; border-radius: 8px; box-shadow: 0 3px 12px rgba(0,0,0,0.1);">
+<div style="margin-top: 12px;">
+<a href="bo-simulator-fast.html" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #00b894 0%, #00cec9 100%); color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: 0.95em; font-weight: bold; box-shadow: 0 3px 12px rgba(0, 184, 148, 0.3);">
+🚀 Launch Simulator
+</a>
+<br><span style="font-size: 0.7em; color: #666;">Opens in new window</span>
+</div>
+</div>
+
+<div>
+<h3 style="color: #00529b; margin: 0 0 10px 0; font-size: 1em;">🔍 What You'll See</h3>
+<div style="font-size: 0.72em; line-height: 1.3;">
+<div style="margin-bottom: 6px;"><span style="color: #4682B4;">●</span> <strong>Blue cylinders:</strong> Customer locations</div>
+<div style="margin-bottom: 6px;"><span style="color: #00ced1;">●</span> <strong>Colored surface:</strong> AI's belief about costs</div>
+<div style="margin-bottom: 6px;"><span style="color: #ff6347;">●</span> <strong>Red wireframe:</strong> True hidden cost landscape</div>
+<div><span style="color: #9370db;">●</span> <strong>Purple surface:</strong> Next test decision guide</div>
+</div>
+</div>
+
+<div>
+<h3 style="color: #00529b; margin: 0 0 10px 0; font-size: 1em;">⚡ Try These</h3>
+<div style="font-size: 0.72em; line-height: 1.3;">
+• Click <strong>"Initialize/Reset"</strong> to start<br>
+• <strong>"Run One Step"</strong> for learning<br>
+• Adjust <strong>Exploration (Beta)</strong> slider<br>
+• Toggle surfaces to see beliefs vs reality<br>
+• Watch it find the hidden optimum!
+</div>
+</div>
+
+</div>
+
+<div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white; padding: 12px 25px; border-radius: 8px; text-align: center; margin-top: 20px;">
+<strong>💡 Key Discovery:</strong> Algorithm finds non-obvious optimal location away from customer center in ~15 tests vs 100+ random trials!
+</div>
+
 ## 🚛 Real-World Impact in Logistics
 
 <div style="background: linear-gradient(135deg, #00b894 0%, #00cec9 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px;">
