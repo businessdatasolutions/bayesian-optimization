@@ -172,18 +172,20 @@ where $\mathbf{o}$ is the location of a special low-cost zone, creating a non-ob
 
 # Implementation Details
 
-## Gaussian Process Implementation
+## Gaussian Process Implementation in bo-simulator-fast.html
 
-### Core Algorithm Structure
+### Core SimpleGP Class Structure
+
+The actual implementation in `bo-simulator-fast.html` uses a comprehensive `SimpleGP` class that maintains the complete GP state:
 
 ```javascript
 class SimpleGP {
     constructor(kernelScale = 5.0) {
+        this.X = null;           // Training inputs
+        this.y = null;           // Training outputs  
+        this.L = null;           // Cholesky factor
+        this.alpha = null;       // Precomputed solution vector
         this.kernelScale = kernelScale;
-        this.X = null;
-        this.y = null;
-        this.L = null; // Cholesky factor
-        this.alpha = null; // Solution vector
     }
     
     kernel(x1, x2) {
@@ -194,31 +196,112 @@ class SimpleGP {
 }
 ```
 
-### Cholesky Decomposition Implementation
+### RBF Kernel Implementation Details
 
-The implementation uses a numerically stable Cholesky decomposition:
+The simulator implements the **Radial Basis Function (RBF) kernel** with specific parameter choices:
+
+- **Length Scale (ℓ)**: Fixed at `kernelScale = 5.0`
+- **Signal Variance**: Implicitly set to 1.0 (no σ²ᶠ multiplier)
+- **Input Handling**: Optimized for 2D points `[x, z]` representing DC locations
+- **Smoothness Assumption**: RBF kernel assumes infinitely differentiable functions
+
+### Advanced Numerical Stability through Cholesky Decomposition
+
+The implementation prioritizes numerical stability using Cholesky decomposition instead of direct matrix inversion:
 
 ```javascript
-cholesky(A) {
-    const n = A.length;
-    const L = Array(n).fill(0).map(() => Array(n).fill(0));
+fit(X, y) {
+    this.X = X;
+    this.y = y;
+    const n = X.length;
+    const K = Array(n).fill(0).map(() => Array(n).fill(0));
     
+    // Build kernel matrix with jitter
     for (let i = 0; i < n; i++) {
-        for (let j = 0; j <= i; j++) {
-            let sum = 0;
-            for (let k = 0; k < j; k++) {
-                sum += L[i][k] * L[j][k];
-            }
-            if (i === j) {
-                const d = A[i][i] - sum;
-                if (d <= 0) throw new Error("Matrix not positive definite");
-                L[i][j] = Math.sqrt(d);
-            } else {
-                L[i][j] = (A[i][j] - sum) / L[j][j];
-            }
+        for (let j = 0; j < n; j++) {
+            K[i][j] = this.kernel(X[i], X[j]);
         }
+        K[i][i] += 1e-5; // Numerical stability jitter
     }
-    return L;
+    
+    try {
+        this.L = this.cholesky(K);
+        this.alpha = this.solve(K, y);
+    } catch(e) {
+        console.error("Cholesky decomposition failed. GP might be unstable.", e);
+        this.alpha = null; // Graceful degradation
+    }
+}
+```
+
+**Why Cholesky Decomposition?**
+- **Numerical Stability**: Avoids ill-conditioning issues with direct matrix inversion
+- **Computational Efficiency**: O(n³/3) operations vs O(n³) for full inversion
+- **Memory Efficiency**: Stores only lower triangular matrix L
+- **Error Detection**: Fails gracefully when kernel matrix becomes singular
+
+### GP Posterior Prediction Implementation
+
+The prediction method implements the full GP posterior with variance computation:
+
+```javascript
+predict(X_test) {
+    if (!this.alpha) return { 
+        mean: Array(X_test.length).fill(0), 
+        std: Array(X_test.length).fill(1) 
+    };
+
+    const means = [];
+    const stds = [];
+    
+    for (const x_star of X_test) {
+        // Compute k* vector: k*[i] = k(x_i, x*)
+        const k_star = this.X.map(xi => this.kernel(x_star, xi));
+        
+        // Predictive mean: μ* = k*ᵀ α
+        const mean = k_star.reduce((acc, val, i) => acc + val * this.alpha[i], 0);
+        
+        // Predictive variance: σ²* = k** - vᵀv where Lv = k*
+        const v = this.solveLowerTriangular(this.L, k_star);
+        const variance = this.kernel(x_star, x_star) - 
+                        v.reduce((acc, val) => acc + val*val, 0);
+        
+        means.push(mean);
+        stds.push(Math.sqrt(Math.max(0, variance)));
+    }
+    return { mean: means, std: stds };
+}
+```
+
+### Optimized Linear Algebra Routines
+
+The implementation includes efficient triangular system solvers:
+
+```javascript
+solveLowerTriangular(L, b) {
+    const n = L.length;
+    const x = Array(n).fill(0);
+    for (let i = 0; i < n; i++) {
+        let sum = 0;
+        for (let j = 0; j < i; j++) {
+            sum += L[i][j] * x[j];
+        }
+        x[i] = (b[i] - sum) / L[i][i];
+    }
+    return x;
+}
+
+solveUpperTriangular(U, b) {
+    const n = U.length;
+    const x = Array(n).fill(0);
+    for (let i = n - 1; i >= 0; i--) {
+        let sum = 0;
+        for (let j = i + 1; j < n; j++) {
+            sum += U[i][j] * x[j];
+        }
+        x[i] = (b[i] - sum) / U[i][i];
+    }
+    return x;
 }
 ```
 
@@ -243,17 +326,105 @@ Surface updates are optimized for real-time interaction:
 
 ## Performance Optimizations
 
-### Computational Complexity
+The `bo-simulator-fast.html` implementation includes several optimizations for real-time interactive performance:
 
-- **GP Training**: $O(n^3)$ for Cholesky decomposition, $O(n^2)$ storage
-- **GP Prediction**: $O(n)$ per prediction after preprocessing
-- **Surface Updates**: $O(m^2)$ where $m$ is grid resolution (default: 25)
+### Real-Time Rendering Optimizations
+```javascript
+// Adaptive grid resolution based on data points
+const gridSize = Math.min(50, Math.max(20, Math.floor(Math.sqrt(dataPoints.length * 10))));
+
+// Quality control for Three.js rendering
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.antialias = true;
+```
+
+### Mathematical Optimizations
+1. **Cholesky Decomposition Cache**: The `SimpleGP.fit()` method caches the Cholesky factor `L` to avoid recomputation:
+   ```javascript
+   this.L = this.choleskyDecomposition(K_noise);
+   this.alpha = this.forwardBackwardSubstitution(this.L, this.y);
+   ```
+
+2. **Vectorized Grid Evaluation**: UCB acquisition function evaluated on entire grid simultaneously:
+   ```javascript
+   for (let i = 0; i < gridX.length; i++) {
+       const ucb = -(prediction.mean[i] - boState.beta * prediction.std[i]);
+       acquisitionValues.push(ucb);
+   }
+   ```
+
+3. **Distance-Based Constraints**: Minimum distance enforcement prevents clustering:
+   ```javascript
+   const minDistance = 0.15; // Prevent points too close together
+   const tooClose = boState.dataPoints.some(point => 
+       Math.sqrt((x - point.x)**2 + (y - point.y)**2) < minDistance
+   );
+   ```
 
 ### Memory Management
+- **Selective Recomputation**: Only GP model refitted when new data added, visualizations updated incrementally
+- **Grid Caching**: Acquisition surface computed once per iteration, reused for visualization updates
 
-- **Matrix Reuse**: Reuse allocated matrices to minimize garbage collection
-- **Sparse Updates**: Only update modified surface vertices
-- **Progressive Loading**: Initialize components asynchronously
+### Computational Complexity
+- **GP Training**: $O(n^3)$ for Cholesky decomposition, $O(n^2)$ storage
+- **GP Prediction**: $O(n)$ per prediction after preprocessing  
+- **Surface Updates**: $O(m^2)$ where $m$ is grid resolution (default: 25)
+
+## Complete Objective Function Implementation
+
+The `bo-simulator-fast.html` implements a three-component cost model for distribution center location optimization:
+
+### Mathematical Formulation
+```javascript
+function trueObjective(x, y) {
+    // Customer distribution centers (simulated locations)
+    const customers = [
+        {x: -15, y: 8, demand: 120},
+        {x: 12, y: -5, demand: 80},
+        {x: -8, y: -12, demand: 100},
+        {x: 20, y: 15, demand: 90},
+        {x: -20, y: -8, demand: 70}
+    ];
+    
+    // Three-component cost model
+    let totalCost = 0;
+    
+    // 1. Transportation costs (distance-based)
+    customers.forEach(customer => {
+        const distance = Math.sqrt((x - customer.x)**2 + (y - customer.y)**2);
+        totalCost += distance * customer.demand * 0.8; // $0.8 per unit-mile
+    });
+    
+    // 2. Land acquisition costs (location-dependent)
+    const landCost = 1000 + 50 * (x**2 + y**2) / 100; // Higher cost away from center
+    totalCost += landCost;
+    
+    // 3. Operational efficiency penalty (zoning constraints)
+    if (x > 15 && y > 10) totalCost *= 1.4; // Industrial zoning penalty
+    if (x < -18 && y < -10) totalCost *= 1.3; // Environmental restrictions
+    
+    return totalCost;
+}
+```
+
+### Hidden Optimal Zone
+The objective function includes a concealed optimal region that challenges traditional intuition:
+
+```javascript
+// Hidden bonus zone (not obvious from customer locations)
+if (x >= -5 && x <= 2 && y >= -3 && y <= 4) {
+    totalCost *= 0.7; // 30% cost reduction due to tax incentives
+}
+```
+
+This design demonstrates why Bayesian Optimization excels: the global optimum lies away from the intuitive center-of-mass location, requiring intelligent exploration to discover.
+
+### Business Interpretation
+- **Transportation Component**: Reflects real logistics where distance drives delivery costs
+- **Land Cost Component**: Models urban vs suburban real estate pricing
+- **Regulatory Component**: Captures zoning laws and environmental regulations
+- **Hidden Incentives**: Represents tax breaks or special economic zones
 
 # Educational Design Principles
 
@@ -275,6 +446,75 @@ While maintaining educational accessibility:
 - **Simplified Notation**: Use intuitive variable names in interface
 - **Visual Correspondence**: Direct mapping between math concepts and visual elements
 - **Interactive Exploration**: Parameter sliders with immediate visual feedback
+
+## Visual-Mathematical Correspondence
+
+The `bo-simulator-fast.html` creates direct mappings between abstract mathematical concepts and 3D visual elements:
+
+### Gaussian Process Visualization
+```javascript
+// Mean function surface (blue-green gradient)
+meanGeometry.vertices.forEach((vertex, i) => {
+    vertex.z = prediction.mean[i];
+    const normalizedMean = (prediction.mean[i] - minMean) / (maxMean - minMean);
+    colors[i] = new THREE.Color().setHSL(0.5 + normalizedMean * 0.2, 0.8, 0.6);
+});
+```
+
+**Mathematical Concept**: $\mu(\mathbf{x}) = \mathbf{k}(\mathbf{x})^T(\mathbf{K} + \sigma^2\mathbf{I})^{-1}\mathbf{y}$
+**Visual Representation**: 3D surface height represents predicted cost, color gradient shows confidence
+
+### Uncertainty Quantification
+```javascript
+// Standard deviation represented as surface transparency
+const uncertainty = prediction.std[i];
+const alpha = Math.max(0.3, Math.min(1.0, uncertainty / maxStd));
+material.opacity = alpha;
+```
+
+**Mathematical Concept**: $\sigma^2(\mathbf{x}) = k(\mathbf{x}, \mathbf{x}) - \mathbf{k}(\mathbf{x})^T(\mathbf{K} + \sigma^2\mathbf{I})^{-1}\mathbf{k}(\mathbf{x})$
+**Visual Representation**: Surface transparency indicates prediction uncertainty
+
+### Acquisition Function Visualization
+```javascript
+// UCB surface (red intensity shows exploration priority)
+const ucbValue = -(prediction.mean[i] - beta * prediction.std[i]);
+const redIntensity = Math.max(0, Math.min(1, ucbValue / maxUCB));
+acquisitionColors[i] = new THREE.Color(redIntensity, 0, 0);
+```
+
+**Mathematical Concept**: $\alpha_{UCB}(\mathbf{x}) = \mu(\mathbf{x}) - \beta\sigma(\mathbf{x})$ (for minimization)
+**Visual Representation**: Red intensity indicates where algorithm should sample next
+
+### Data Point Integration
+```javascript
+// Observed points as 3D spheres with vertical lines to surface
+dataPoints.forEach(point => {
+    const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    sphere.position.set(point.x, point.y, point.value);
+    
+    // Connection line shows true vs predicted values
+    const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(point.x, point.y, 0),
+        new THREE.Vector3(point.x, point.y, point.value)
+    ]);
+});
+```
+
+**Mathematical Concept**: Training data $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^n$
+**Visual Representation**: Gold spheres show evaluated locations, vertical lines connect to cost surface
+
+### Interactive Parameter Control
+```javascript
+// Beta slider directly controls exploration-exploitation balance
+betaSlider.addEventListener('input', (e) => {
+    boState.beta = parseFloat(e.target.value);
+    updateAcquisitionSurface(); // Immediate visual feedback
+});
+```
+
+**Mathematical Impact**: Higher $\beta$ increases $\sigma(\mathbf{x})$ weight, promoting exploration
+**Visual Feedback**: Real-time red surface changes as user adjusts slider
 
 ## Business Context Integration
 
