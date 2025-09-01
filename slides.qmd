@@ -67,36 +67,36 @@ By the end of this session, you will:
 
 ## 📋 Today's Roadmap
 
-<div style="display: flex; align-items: center; justify-content: space-between; margin: 40px 0;">
+<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; align-items: center; margin: 40px 0;">
 
-<div style="flex: 1; text-align: center;">
-<div style="background: #e3f2fd; border-radius: 50%; width: 80px; height: 80px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2em;">🎯</div>
-<strong>The Challenge</strong><br/>
+<div style="text-align: center;">
+<div style="background: #e3f2fd; border-radius: 50%; width: 70px; height: 70px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 1.8em;">🎯</div>
+<strong>Challenge</strong><br/>
 <small>2 minutes</small>
 </div>
 
-<div style="flex: 0 0 50px; text-align: center; font-size: 2em; color: #ccc;">→</div>
-
-<div style="flex: 1; text-align: center;">
-<div style="background: #f3e5f5; border-radius: 50%; width: 80px; height: 80px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2em;">🧠</div>
-<strong>Smart Strategy</strong><br/>
-<small>7 minutes</small>
+<div style="text-align: center;">
+<div style="background: #f3e5f5; border-radius: 50%; width: 70px; height: 70px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 1.8em;">🧠</div>
+<strong>Strategy</strong><br/>
+<small>10 minutes</small>
 </div>
 
-<div style="flex: 0 0 50px; text-align: center; font-size: 2em; color: #ccc;">→</div>
-
-<div style="flex: 1; text-align: center;">
-<div style="background: #e8f5e8; border-radius: 50%; width: 80px; height: 80px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2em;">🔄</div>
-<strong>The Loop</strong><br/>
-<small>4 minutes</small>
+<div style="text-align: center;">
+<div style="background: #e8f5e8; border-radius: 50%; width: 70px; height: 70px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 1.8em;">🔄</div>
+<strong>Practice</strong><br/>
+<small>8 minutes</small>
 </div>
 
-<div style="flex: 0 0 50px; text-align: center; font-size: 2em; color: #ccc;">→</div>
+<div style="text-align: center;">
+<div style="background: #fff3e0; border-radius: 50%; width: 70px; height: 70px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 1.8em;">🚛</div>
+<strong>Impact</strong><br/>
+<small>5 minutes</small>
+</div>
 
-<div style="flex: 1; text-align: center;">
-<div style="background: #fff3e0; border-radius: 50%; width: 80px; height: 80px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2em;">🚛</div>
-<strong>Real Impact</strong><br/>
-<small>2 minutes</small>
+<div style="text-align: center;">
+<div style="background: #ffeaa7; border-radius: 50%; width: 70px; height: 70px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 1.8em;">🎤</div>
+<strong>Q&A</strong><br/>
+<small>5 minutes</small>
 </div>
 
 </div>
@@ -172,7 +172,7 @@ Random guesses are inefficient. <strong>We need a smarter strategy.</strong>
 </div>
 
 <div style="text-align: center; font-size: 3em; color: #a29bfe;">
-⟷
+→
 </div>
 
 <div style="background: #d9edf7; padding: 25px; border-radius: 15px; border: 2px solid #bce8f1; text-align: center;">
@@ -572,7 +572,7 @@ Notice how the algorithm first **explores** uncertain areas, then **exploits** p
 <h3 style="color: #00529b; margin: 0 0 10px 0; font-size: 1em;">🔍 What You'll See</h3>
 <div style="font-size: 0.72em; line-height: 1.3;">
 <div style="margin-bottom: 6px;"><span style="color: #4682B4;">●</span> <strong>Blue cylinders:</strong> Customer locations</div>
-<div style="margin-bottom: 6px;"><span style="color: #2ecc71;">●</span> <strong>Colored surface:</strong> AI's belief about costs</div>
+<div style="margin-bottom: 6px;"><span style="color: #2ecc71;">●</span> <strong>Green surface:</strong> AI's belief about costs</div>
 <div style="margin-bottom: 6px;"><span style="color: #ff6347;">●</span> <strong>Red wireframe:</strong> True hidden cost landscape</div>
 <div><span style="color: #9370db;">●</span> <strong>Purple surface:</strong> Next test decision guide</div>
 </div>
