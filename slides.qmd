@@ -693,7 +693,7 @@ Ready to explore how Bayesian Optimization can transform your logistics operatio
 
 ::: {.center style="padding: 40px; background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white; border-radius: 15px;"}
 **Contact Information**  
-Your Data Science Team | your-team@company.com
+HAN Lectoraat Logistiek en Allianties  | Karen.Engelvaart@han.nl
 
 *Generated with Bayesian Optimization interactive demos*
 :::

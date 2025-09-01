@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Bayesian Optimization for DC Location</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+        }
+        #info-panel {
+            width: 380px;
+            background-color: #ffffff;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+        .tab-header {
+            display: flex;
+            flex-shrink: 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .tab-button {
+            flex-grow: 1;
+            padding: 15px 10px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 1em;
+            font-weight: 600;
+            color: #495057;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .tab-button:hover {
+            background-color: #e9ecef;
+        }
+        .tab-button.active {
+            color: #00529b;
+            border-bottom: 3px solid #007bff;
+            background-color: #fff;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        h1, h2, h3 {
+            margin-top: 0;
+            color: #00529b;
+        }
+        h1 { font-size: 1.6em; }
+        h2 { font-size: 1.2em; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 15px; }
+        .control-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9em; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+            transition: background-color 0.2s;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #a0c7e4; cursor: not-allowed; }
+        .button-group { display: flex; gap: 10px; }
+        input[type="range"] { width: 100%; }
+        .output-box {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+        .output-box p { margin: 0 0 8px 0; font-size: 0.9em; }
+        .output-box span { font-weight: 600; color: #00529b; }
+        #canvas-container {
+            flex-grow: 1;
+            height: 100vh;
+            position: relative;
+        }
+        #loading-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            z-index: 100;
+        }
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-size: 0.8em;
+        }
+        .legend-item { display: flex; align-items: center; margin-bottom: 5px; }
+        .legend-color { width: 15px; height: 15px; margin-right: 8px; border: 1px solid #ccc; }
+        
+        /* Tutorial styles */
+        .tutorial-section { margin-bottom: 25px; }
+        .tutorial-section h3 { font-size: 1.1em; color: #007bff; }
+        .tutorial-section p { font-size: 0.9em; line-height: 1.5; margin: 0; }
+        .tutorial-section ul { padding-left: 20px; font-size: 0.9em; line-height: 1.5; margin-top: 10px; }
+        .tutorial-section li { margin-bottom: 8px; }
+        .tutorial-section strong { color: #333; }
+        .tutorial-section .icon { display: inline-block; width: 15px; height: 15px; margin-right: 5px; vertical-align: middle; border: 1px solid #ccc;}
+
+    </style>
+</head>
+<body>
+
+    <div id="info-panel">
+        <div class="tab-header">
+            <button class="tab-button active" data-tab="controls">Controls</button>
+            <button class="tab-button" data-tab="tutorial">Tutorial</button>
+        </div>
+
+        <div id="tab-controls" class="tab-content active">
+            <h1>Bayesian Optimization Simulator</h1>
+            <p style="font-size: 0.9em; margin-bottom: 20px;">Find the optimal Distribution Center (DC) location that minimizes total transportation cost.</p>
+
+            <div class="control-group">
+                <h2>Simulation Controls</h2>
+                <div class="button-group">
+                    <button id="reset-btn">Initialize / Reset</button>
+                </div>
+                <div class="button-group" style="margin-top:10px;">
+                    <button id="step-btn" disabled>Run One Step</button>
+                    <button id="run-btn" disabled>Run Automatically</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h2>Parameters</h2>
+                <label for="noise-slider">Observation Noise: <span id="noise-value">0.10</span></label>
+                <input type="range" id="noise-slider" min="0" max="1" step="0.05" value="0.1">
+                <label for="beta-slider">Exploration (Beta): <span id="beta-value">2.5</span></label>
+                <input type="range" id="beta-slider" min="0.1" max="10" step="0.1" value="2.5">
+            </div>
+            
+            <div class="control-group">
+                <h2>View Options</h2>
+                <div class="button-group">
+                   <button id="toggle-truth-btn">Toggle True Cost</button>
+                   <button id="toggle-surrogate-btn">Toggle Belief</button>
+                </div>
+                 <div class="button-group" style="margin-top:10px;">
+                    <button id="toggle-acq-btn">Toggle Decision</button>
+                </div>
+            </div>
+
+            <div class="output-box">
+                <h3>Simulation Status</h3>
+                <p>Iteration: <span id="iteration-count">0</span></p>
+                <p>Feasibility Studies: <span id="samples-count">0</span></p>
+                <p>Best Cost Found: <span id="best-cost">N/A</span></p>
+                <p>Optimal Location: <span id="best-location">N/A</span></p>
+            </div>
+        </div>
+
+        <div id="tab-tutorial" class="tab-content">
+            <h1>Simulator Tutorial</h1>
+
+            <div class="tutorial-section">
+                <h3>What is this?</h3>
+                <p>This simulation demonstrates how <strong>Bayesian Optimization (BO)</strong> intelligently finds the best location for a Distribution Center (DC). The goal is to find the location with the lowest total cost (the lowest point on the map) by running as few expensive "feasibility studies" (tests) as possible.</p>
+            </div>
+
+            <div class="tutorial-section">
+                <h3>The 3D View Explained</h3>
+                <ul>
+                    <li><span class="icon" style="background: #4682B4;"></span><strong>Blue Cylinders:</strong> These are your customer locations. The total travel distance to all of them is a major part of the cost.</li>
+                    <li><strong>Surfaces (Toggle them in Controls):</strong>
+                        <ul>
+                            <li><strong>True Cost (Red Wireframe):</strong> This is the real, hidden cost landscape. In the real world, you can't see this! The lowest valley is the true best answer we're searching for.</li>
+                            <li><strong>Belief (Colored Surface):</strong> This is the AI's "Smart Predictor." It's a guess about the cost landscape based on the tests so far. Blue means it predicts low cost, while yellow means it is very <strong>uncertain</strong>.</li>
+                            <li><strong>Decision (Purple Surface):</strong> This is the AI's "Smart Decision Maker." It shows how promising it is to test at each location. The highest peaks guide where to run the next expensive test.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Markers:</strong>
+                        <ul>
+                           <li><span class="icon" style="background: #FFD700;"></span><strong>Yellow Spheres:</strong> Locations where a test (feasibility study) has already been run.</li>
+                           <li><span class="icon" style="background: #32CD32;"></span><strong>Green Sphere:</strong> The best location found so far.</li>
+                           <li><span class="icon" style="background: #FF4500;"></span><strong>Red Sphere:</strong> The location the AI has decided to test next.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="tutorial-section">
+                <h3>How to Use It</h3>
+                <p>
+                    <strong>1. Initialize / Reset:</strong> Start the simulation. This runs two random tests to give the AI a starting point.
+                    <br><br>
+                    <strong>2. Run One Step:</strong> Click this to watch the AI perform one cycle: It updates its belief, uses the decision surface to pick the next best spot (red marker), and runs a new test.
+                     <br><br>
+                    <strong>3. Experiment with Parameters:</strong>
+                    <ul>
+                      <li><strong>Observation Noise:</strong> Increase this to make the test results less accurate. This simulates real-world measurement errors and makes the problem harder.</li>
+                      <li><strong>Exploration (Beta):</strong> This controls the trade-off. A <strong>high Beta</strong> makes the AI prioritize exploring uncertain (yellow) areas. A <strong>low Beta</strong> makes it focus on exploiting areas it already thinks are good (the lowest blue valleys).</li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="canvas-container">
+        <div id="loading-overlay">Loading 3D Scene...</div>
+        <div class="legend">
+            <div class="legend-item"><div class="legend-color" style="background: #4682B4;"></div>Customer Location</div>
+            <div class="legend-item"><div class="legend-color" style="background: #FFD700;"></div>Sampled DC Location</div>
+            <div class="legend-item"><div class="legend-color" style="background: #32CD32;"></div>Best Location Found</div>
+            <div class="legend-item"><div class="legend-color" style="background: #FF4500;"></div>Next Location to Test</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script type="module">
+        // --- Core Classes & Setup ---
+        const SCENE_SIZE = 50;
+        const GRID_RESOLUTION = 40; // Affects performance
+        
+        let scene, camera, renderer, controls, stats;
+        let trueCostSurface, surrogateSurface, acquisitionSurface;
+        let customerMarkers = new THREE.Group();
+        let sampleMarkers = new THREE.Group();
+        let nextMarker, bestMarker;
+
+        let boState = {
+            isRunning: false,
+            isAutoRunning: false,
+            samplesX: [],
+            samplesY: [],
+            gp: null,
+            noise: 0.1,
+            beta: 2.5,
+            iteration: 0,
+            bestCostFound: Infinity,
+            bestLocationFound: null,
+        };
+
+        // --- UI Elements ---
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const iterationCountEl = document.getElementById('iteration-count');
+        const samplesCountEl = document.getElementById('samples-count');
+        const bestCostEl = document.getElementById('best-cost');
+        const bestLocationEl = document.getElementById('best-location');
+        const noiseSlider = document.getElementById('noise-slider');
+        const betaSlider = document.getElementById('beta-slider');
+        const noiseValueEl = document.getElementById('noise-value');
+        const betaValueEl = document.getElementById('beta-value');
+        
+        const resetBtn = document.getElementById('reset-btn');
+        const stepBtn = document.getElementById('step-btn');
+        const runBtn = document.getElementById('run-btn');
+        
+        const toggleTruthBtn = document.getElementById('toggle-truth-btn');
+        const toggleSurrogateBtn = document.getElementById('toggle-surrogate-btn');
+        const toggleAcqBtn = document.getElementById('toggle-acq-btn');
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+
+        // --- True Objective Function (The "Black Box") ---
+        // This simulates the real-world cost. The algorithm does not see this function.
+        const CUSTOMER_LOCATIONS = Array.from({ length: 30 }, () => 
+            new THREE.Vector2(
+                (Math.random() - 0.5) * SCENE_SIZE * 0.9,
+                (Math.random() - 0.5) * SCENE_SIZE * 0.9
+            )
+        );
+
+        function trueObjectiveFunction(x, z) {
+            let distanceCost = CUSTOMER_LOCATIONS.reduce((acc, loc) => {
+                return acc + Math.sqrt(Math.pow(x - loc.x, 2) + Math.pow(z - loc.y, 2));
+            }, 0);
+
+            // Add some non-linearity (e.g., "mountains" or high-cost zones)
+            let terrainCost = 
+                200 * Math.exp(-0.01 * (Math.pow(x - 15, 2) + Math.pow(z - 15, 2))) +
+                300 * Math.exp(-0.02 * (Math.pow(x + 20, 2) + Math.pow(z + 10, 2)));
+
+            return (distanceCost + terrainCost) / 20; // Normalize
+        }
+        
+        // --- Gaussian Process (GP) Implementation ---
+        // A simplified GP regressor for demonstration purposes.
+        class SimpleGP {
+            constructor(kernelScale = 5.0) {
+                this.X = null;
+                this.y = null;
+                this.K = null;
+                this.alpha = null;
+                this.kernelScale = kernelScale;
+            }
+
+            // RBF Kernel
+            kernel(x1, x2) {
+                const sqdist = x1.reduce((acc, val, i) => acc + Math.pow(val - x2[i], 2), 0);
+                return Math.exp(-0.5 / this.kernelScale ** 2 * sqdist);
+            }
+
+            fit(X, y) {
+                this.X = X;
+                this.y = y;
+                const n = X.length;
+                this.K = Array(n).fill(0).map(() => Array(n).fill(0));
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        this.K[i][j] = this.kernel(X[i], X[j]);
+                    }
+                    this.K[i][i] += 1e-5; // Add jitter for stability
+                }
+                
+                // Using a simple inversion, for a real case use Cholesky decomposition
+                try {
+                    const K_inv = this.invertMatrix(this.K);
+                    this.alpha = this.multiplyMatrixVector(K_inv, y);
+                } catch(e) {
+                    console.error("Matrix inversion failed. GP might be unstable.", e);
+                    this.alpha = null; // Invalidate GP
+                }
+            }
+
+            predict(X_test) {
+                if (!this.alpha) return { mean: Array(X_test.length).fill(0), std: Array(X_test.length).fill(1) };
+
+                const means = [];
+                const stds = [];
+                const n = this.X.length;
+
+                for (const x_star of X_test) {
+                    const k_star = this.X.map(xi => this.kernel(x_star, xi));
+                    const mean = k_star.reduce((acc, val, i) => acc + val * this.alpha[i], 0);
+                    
+                    const k_star_K_inv = this.multiplyVectorMatrix(k_star, this.invertMatrix(this.K));
+                    const var_val = this.kernel(x_star, x_star) - this.multiplyVectorVector(k_star_K_inv, k_star);
+
+                    means.push(mean);
+                    stds.push(Math.sqrt(Math.max(0, var_val)));
+                }
+                return { mean: means, std: stds };
+            }
+
+            // Helper functions for matrix operations
+            invertMatrix(M) {
+                // Simplified inversion for demo. Not robust for all cases.
+                let n = M.length;
+                let I = Array(n).fill(0).map((_, i) => Array(n).fill(0).map((__, j) => i === j ? 1 : 0));
+                let C = M.map((row, i) => [...row, ...I[i]]);
+
+                for (let i = 0; i < n; i++) {
+                    let pivot = i;
+                    for (let j = i + 1; j < n; j++) {
+                        if (Math.abs(C[j][i]) > Math.abs(C[pivot][i])) pivot = j;
+                    }
+                    [C[i], C[pivot]] = [C[pivot], C[i]];
+                    let div = C[i][i];
+                    for (let j = i; j < 2 * n; j++) C[i][j] /= div;
+                    for (let j = 0; j < n; j++) {
+                        if (i !== j) {
+                            let mult = C[j][i];
+                            for (let k = i; k < 2 * n; k++) C[j][k] -= mult * C[i][k];
+                        }
+                    }
+                }
+                return C.map(row => row.slice(n));
+            }
+            multiplyMatrixVector(M, v) {
+                return M.map(row => row.reduce((acc, val, i) => acc + val * v[i], 0));
+            }
+            multiplyVectorMatrix(v, M) {
+                let n = v.length;
+                let m = M[0].length;
+                let result = Array(m).fill(0);
+                for(let j=0; j<m; j++) {
+                    for(let i=0; i<n; i++) {
+                        result[j] += v[i] * M[i][j];
+                    }
+                }
+                return result;
+            }
+             multiplyVectorVector(v1, v2) {
+                return v1.reduce((acc, val, i) => acc + val * v2[i], 0);
+            }
+        }
+
+
+        // --- 3D Scene Initialization ---
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f2f5);
+            scene.fog = new THREE.Fog(0xf0f2f5, 100, 250);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 80, 80);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            const container = document.getElementById('canvas-container');
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(-30, 50, -30);
+            dirLight.castShadow = true;
+            scene.add(dirLight);
+
+            // Controls & Stats
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            stats = new Stats();
+            //container.appendChild(stats.dom);
+
+            // Base Grid
+            const gridHelper = new THREE.GridHelper(SCENE_SIZE * 2, SCENE_SIZE * 2, 0xcccccc, 0xcccccc);
+            scene.add(gridHelper);
+            
+            // Add customer locations
+            CUSTOMER_LOCATIONS.forEach(loc => {
+                const geometry = new THREE.CylinderGeometry(0.5, 0.5, 2, 16);
+                const material = new THREE.MeshLambertMaterial({ color: 0x4682B4 });
+                const cylinder = new THREE.Mesh(geometry, material);
+                cylinder.position.set(loc.x, 1, loc.y);
+                customerMarkers.add(cylinder);
+            });
+            scene.add(customerMarkers);
+            
+            // Create surface geometries
+            trueCostSurface = createSurface(trueObjectiveFunction, new THREE.MeshStandardMaterial({ color: 0xff6347, wireframe: true, transparent: true, opacity: 0.5, side: THREE.DoubleSide }));
+            trueCostSurface.visible = false;
+            scene.add(trueCostSurface);
+
+            surrogateSurface = createSurface((x,z) => 0, new THREE.MeshStandardMaterial({ color: 0x00ced1, vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: 0.8 }));
+            surrogateSurface.visible = true;
+            scene.add(surrogateSurface);
+            
+            acquisitionSurface = createSurface((x,z) => 0, new THREE.MeshStandardMaterial({ color: 0x9370db, wireframe: false, side: THREE.DoubleSide, transparent: true, opacity: 0.6 }));
+            acquisitionSurface.visible = false;
+            scene.add(acquisitionSurface);
+            
+            scene.add(sampleMarkers);
+
+            window.addEventListener('resize', onWindowResize);
+            loadingOverlay.style.display = 'none';
+        }
+
+        function createSurface(func, material) {
+            const geometry = new THREE.PlaneGeometry(SCENE_SIZE, SCENE_SIZE, GRID_RESOLUTION, GRID_RESOLUTION);
+            const vertices = geometry.attributes.position.array;
+            for (let i = 0, j = 0; i < vertices.length; i += 3, j++) {
+                const x = vertices[i];
+                const z = vertices[i + 1]; // In PlaneGeometry, y is used for the up-axis
+                vertices[i + 2] = func(x, z);
+            }
+            geometry.attributes.position.needsUpdate = true;
+            geometry.computeVertexNormals();
+            
+            const surface = new THREE.Mesh(geometry, material);
+            surface.rotation.x = -Math.PI / 2;
+            return surface;
+        }
+        
+        function updateSurface(surface, func) {
+             const vertices = surface.geometry.attributes.position.array;
+             for (let i = 0; i < vertices.length; i += 3) {
+                const x = vertices[i];
+                const z = vertices[i + 1];
+                vertices[i + 2] = func(x, z);
+            }
+            surface.geometry.attributes.position.needsUpdate = true;
+            surface.geometry.computeVertexNormals();
+        }
+
+        function updateSurrogateSurface(meanFunc, stdFunc) {
+            const geometry = surrogateSurface.geometry;
+            const vertices = geometry.attributes.position.array;
+            const colors = new Float32Array(vertices.length);
+            const uncertaintyColor = new THREE.Color(0xffff00); // Yellow for high uncertainty
+            const certaintyColor = new THREE.Color(0x00ced1); // Blue for low uncertainty
+
+            let maxStd = 0;
+            const stds = [];
+            for (let i = 0; i < vertices.length; i += 3) {
+                const x = vertices[i];
+                const z = vertices[i + 1];
+                const std = stdFunc(x, z);
+                stds.push(std);
+                if (std > maxStd) maxStd = std;
+            }
+
+            for (let i = 0, j=0; i < vertices.length; i += 3, j++) {
+                const x = vertices[i];
+                const z = vertices[i + 1];
+                vertices[i + 2] = meanFunc(x, z);
+
+                const t = maxStd > 0 ? Math.min(stds[j] / maxStd, 1.0) : 0;
+                const color = certaintyColor.clone().lerp(uncertaintyColor, t);
+                colors[i] = color.r;
+                colors[i + 1] = color.g;
+                colors[i + 2] = color.b;
+            }
+
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.attributes.position.needsUpdate = true;
+            geometry.computeVertexNormals();
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            stats.update();
+            renderer.render(scene, camera);
+        }
+
+        // --- Bayesian Optimization Logic ---
+        function resetSimulation() {
+            boState.isAutoRunning = false;
+            boState.isRunning = true;
+            boState.samplesX = [];
+            boState.samplesY = [];
+            boState.iteration = 0;
+            boState.bestCostFound = Infinity;
+            boState.bestLocationFound = null;
+
+            // Clear markers
+            while(sampleMarkers.children.length > 0){ 
+                sampleMarkers.remove(sampleMarkers.children[0]); 
+            }
+            if (nextMarker) scene.remove(nextMarker);
+            if (bestMarker) scene.remove(bestMarker);
+
+            // Add 2 initial random samples
+            for (let i = 0; i < 2; i++) {
+                const x = (Math.random() - 0.5) * SCENE_SIZE;
+                const z = (Math.random() - 0.5) * SCENE_SIZE;
+                addSample([x, z]);
+            }
+
+            runBOIteration();
+            updateUI();
+            
+            stepBtn.disabled = false;
+            runBtn.disabled = false;
+            runBtn.textContent = "Run Automatically";
+        }
+        
+        function addSample(point) {
+            const [x, z] = point;
+            const trueValue = trueObjectiveFunction(x, z);
+            const noisyValue = trueValue + (Math.random() - 0.5) * boState.noise * 50;
+
+            boState.samplesX.push([x, z]);
+            boState.samplesY.push(noisyValue);
+            
+            // Add visual marker
+            const geometry = new THREE.SphereGeometry(0.8, 16, 16);
+            const material = new THREE.MeshStandardMaterial({ color: 0xFFD700 });
+            const sphere = new THREE.Mesh(geometry, material);
+            sphere.position.set(x, noisyValue, z);
+            sampleMarkers.add(sphere);
+            
+            if (noisyValue < boState.bestCostFound) {
+                boState.bestCostFound = noisyValue;
+                boState.bestLocationFound = [x, z];
+
+                if (bestMarker) scene.remove(bestMarker);
+                const bestGeom = new THREE.SphereGeometry(1, 16, 16);
+                const bestMat = new THREE.MeshStandardMaterial({ color: 0x32CD32, emissive: 0x32CD32 });
+                bestMarker = new THREE.Mesh(bestGeom, bestMat);
+                bestMarker.position.set(x, noisyValue, z);
+                scene.add(bestMarker);
+            }
+        }
+        
+        function runBOIteration() {
+            boState.iteration++;
+            
+            // 1. Fit GP model
+            boState.gp = new SimpleGP();
+            boState.gp.fit(boState.samplesX, boState.samplesY);
+
+            // 2. Predict mean and std over the grid
+            const gridPoints = [];
+            const planeGeom = surrogateSurface.geometry;
+            const vertices = planeGeom.attributes.position.array;
+             for (let i = 0; i < vertices.length; i += 3) {
+                gridPoints.push([vertices[i], vertices[i + 1]]);
+            }
+            const prediction = boState.gp.predict(gridPoints);
+            
+            // 3. Update surrogate surface visual
+            updateSurrogateSurface(
+                (x, z) => {
+                    const pred = boState.gp.predict([[x, z]]);
+                    return pred.mean[0];
+                },
+                (x, z) => {
+                    const pred = boState.gp.predict([[x, z]]);
+                    return pred.std[0];
+                }
+            );
+
+            // 4. Calculate acquisition function (UCB)
+            const acquisitionValues = prediction.mean.map((mean, i) => mean - boState.beta * prediction.std[i]); // We are minimizing, so mu - beta*sigma
+            
+            // 5. Find next point to sample
+            let maxAcqValue = -Infinity;
+            let nextPointIndex = -1;
+            
+            // To avoid picking points too close to existing ones
+            const minSqDist = 4;
+            for(let i=0; i< acquisitionValues.length; i++) {
+                let isFarEnough = true;
+                const [px, pz] = gridPoints[i];
+                for(const s of boState.samplesX) {
+                    const sqDist = (s[0]-px)**2 + (s[1]-pz)**2;
+                    if(sqDist < minSqDist) {
+                        isFarEnough = false;
+                        break;
+                    }
+                }
+
+                if (isFarEnough && acquisitionValues[i] > maxAcqValue) {
+                    maxAcqValue = acquisitionValues[i];
+                    nextPointIndex = i;
+                }
+            }
+            if (nextPointIndex === -1) nextPointIndex = acquisitionValues.indexOf(Math.max(...acquisitionValues));
+
+            const nextPointToSample = gridPoints[nextPointIndex];
+
+            // 6. Update acquisition surface visual
+            updateSurface(acquisitionSurface, (x, z) => {
+                const pred = boState.gp.predict([[x,z]]);
+                return (pred.mean[0] - boState.beta * pred.std[0]) / 5; // scaled for visibility
+            });
+
+            // 7. Mark the next point
+            if (nextMarker) scene.remove(nextMarker);
+            const nextGeom = new THREE.SphereGeometry(1, 16, 16);
+            const nextMat = new THREE.MeshStandardMaterial({ color: 0xFF4500, emissive: 0xFF4500 });
+            nextMarker = new THREE.Mesh(nextGeom, nextMat);
+            const predMean = boState.gp.predict([nextPointToSample]).mean[0];
+            nextMarker.position.set(nextPointToSample[0], predMean, nextPointToSample[1]);
+            scene.add(nextMarker);
+            
+            return nextPointToSample;
+        }
+
+        function step() {
+            if (!boState.isRunning) return;
+            const nextPoint = runBOIteration();
+            setTimeout(() => { // delay adding so user can see the "next" marker
+                 addSample(nextPoint);
+                 updateUI();
+            }, 500);
+        }
+
+        async function autoRun() {
+            if (!boState.isAutoRunning) return;
+            
+            step();
+            
+            await new Promise(r => setTimeout(r, 1500));
+            if (boState.iteration < 50 && boState.isAutoRunning) {
+                autoRun();
+            } else {
+                boState.isAutoRunning = false;
+                runBtn.textContent = "Run Automatically";
+                updateUI();
+            }
+        }
+        
+        // --- UI Updates and Event Listeners ---
+        function updateUI() {
+            iterationCountEl.textContent = boState.iteration;
+            samplesCountEl.textContent = boState.samplesX.length;
+            if(boState.bestCostFound !== Infinity) {
+                bestCostEl.textContent = boState.bestCostFound.toFixed(2);
+                bestLocationEl.textContent = `(${boState.bestLocationFound[0].toFixed(1)}, ${boState.bestLocationFound[1].toFixed(1)})`;
+            } else {
+                bestCostEl.textContent = 'N/A';
+                bestLocationEl.textContent = 'N/A';
+            }
+            
+            noiseValueEl.textContent = parseFloat(noiseSlider.value).toFixed(2);
+            betaValueEl.textContent = parseFloat(betaSlider.value).toFixed(1);
+
+            stepBtn.disabled = boState.isAutoRunning;
+            runBtn.disabled = !boState.isRunning;
+        }
+        
+        // Tab switching logic
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+
+                button.classList.add('active');
+                document.getElementById('tab-' + button.dataset.tab).classList.add('active');
+            });
+        });
+
+        noiseSlider.addEventListener('input', (e) => {
+            boState.noise = parseFloat(e.target.value);
+            updateUI();
+        });
+
+        betaSlider.addEventListener('input', (e) => {
+            boState.beta = parseFloat(e.target.value);
+            updateUI();
+            if(boState.isRunning) runBOIteration(); // Re-calculate decision with new beta
+        });
+
+        resetBtn.addEventListener('click', resetSimulation);
+        stepBtn.addEventListener('click', step);
+        runBtn.addEventListener('click', () => {
+            if (boState.isAutoRunning) {
+                boState.isAutoRunning = false;
+                runBtn.textContent = "Run Automatically";
+            } else {
+                boState.isAutoRunning = true;
+                runBtn.textContent = "Stop";
+                autoRun();
+            }
+            updateUI();
+        });
+
+        toggleTruthBtn.addEventListener('click', () => { trueCostSurface.visible = !trueCostSurface.visible; });
+        toggleSurrogateBtn.addEventListener('click', () => { surrogateSurface.visible = !surrogateSurface.visible; });
+        toggleAcqBtn.addEventListener('click', () => { acquisitionSurface.visible = !acquisitionSurface.visible; });
+
+
+        // --- Start Application ---
+        init();
+        animate();
+    </script>
+
+</body>
+</html>
+

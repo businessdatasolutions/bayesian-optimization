@@ -9,6 +9,7 @@ This repository contains educational materials demonstrating Bayesian Optimizati
 ## Key Components
 
 - **slides.qmd**: Main Quarto document containing the presentation source
+- **bo-simulator.html**: Interactive 3D Bayesian Optimization simulator for DC location optimization
 - **_quarto.yml**: Quarto configuration for generating reveal.js presentations
 - **requirements.txt**: Python dependencies for running the embedded code
 - **Virtual Environment**: Python environment managed in `.myenv/` directory
@@ -55,6 +56,36 @@ The Quarto presentation implements visual demonstrations of:
 - Multi-panel figures demonstrating algorithm evolution
 - Comparative charts showing different sampling strategies
 - Business-focused explanations with logistics examples
+
+### Interactive 3D Simulator (`bo-simulator.html`)
+The standalone interactive simulator provides:
+- **3D Visualization**: Real-time 3D rendering using Three.js with orbit controls
+- **Bayesian Optimization Engine**: Educational GP implementation with UCB acquisition function
+- **Dual-Tab Interface**:
+  - **Controls Tab**: Simulation controls, parameter adjustments, and status display
+  - **Tutorial Tab**: Built-in educational explanations and usage instructions
+- **Interactive Controls**: 
+  - Observation noise adjustment (0-1.0)
+  - Exploration parameter (Beta: 0.1-10.0)
+  - Surface visibility toggles (True Cost, Belief, Decision)
+  - Step-by-step or automatic execution modes
+- **Visual Elements**:
+  - Customer locations (blue cylinders)
+  - Sampled DC locations (gold spheres)
+  - Best location found (green sphere)
+  - Next recommended test location (orange sphere)
+  - Color-coded uncertainty visualization on surrogate surface
+- **Educational Features**:
+  - Real-time GP model updates
+  - Visual exploration-exploitation trade-off demonstration
+  - Distribution Center optimization scenario with 30 customer locations
+  - Parameter sensitivity analysis through interactive controls
+  - Integrated tutorial explaining all components and usage
+- **Technical Implementation**:
+  - Standalone HTML file with embedded JavaScript
+  - Three.js for 3D graphics (CDN-based, no local dependencies)
+  - Educational-focused simplified GP implementation
+  - Responsive design with tabbed interface
 
 ## Educational Context
 
