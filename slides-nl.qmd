@@ -691,37 +691,39 @@ In een wereld waar elk experiment telt,
 
 </div>
 
-## 🎯 De Essentie & Uw Volgende Stappen
+## 🎯 De Essentie
 
-<div style="background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%); color: white; padding: 25px; border-radius: 15px; text-align: center; margin-bottom: 25px;">
-<h1 style="margin-top: 0;">🧠 De Formule voor Slim Optimaliseren</h1>
-<p style="font-size: 1.15em; margin: 0;">Bayesian Optimization = De Kracht van een Slimme Voorspeller + een Strategische Beslisser</p>
+<div style="text-align: center; margin: 60px 0;">
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; border-radius: 20px; margin-bottom: 50px;">
+<h1 style="margin: 0; font-size: 2em; font-weight: bold;">🧠 De Formule</h1>
+<p style="font-size: 1.4em; margin: 20px 0 0 0; font-weight: 300;">Slimme Voorspeller + Strategische Beslisser</p>
 </div>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin: 20px 0;">
+<div style="display: flex; justify-content: center; gap: 60px; margin: 50px 0;">
 
-<div>
-<h2 style="color: #2d3436; font-size: 1.3em;">🎉 Uw Belangrijkste Inzichten</h2>
-<div style="background: #dff0d8; padding: 12px; border-radius: 10px; border-left: 5px solid #5cb85c;">
-<ul style="font-size: 0.85em; line-height: 1.5; margin: 0; padding-left: 15px;">
-<li>Een krachtige strategie gebaseerd op <strong>voorspellen en beslissen</strong>.</li>
-<li><strong>Maximale inzichten</strong> met een minimaal aantal dure tests.</li>
-<li>De cruciale, strategische balans tussen <strong>verkennen en exploiteren</strong>.</li>
-<li>Directe impact op <strong>kosten, efficiëntie en innovatiekracht</strong>.</li>
-</ul>
-</div>
+<div style="text-align: center;">
+<div style="background: #e8f5e8; border-radius: 20px; width: 100px; height: 100px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 3em;">🎯</div>
+<h3 style="margin: 0; color: #2d3436; font-size: 1.2em;">Minder Tests</h3>
+<p style="color: #666; margin: 5px 0 0 0; font-size: 0.9em;">Maximaal resultaat</p>
 </div>
 
-<div>
-<h2 style="color: #2d3436; font-size: 1.3em;">🚀 Uw Concrete Volgende Stappen</h2>
-<div style="background: #d9edf7; padding: 12px; border-radius: 10px; border-left: 5px solid #5bc0de;">
-<ol style="font-size: 0.85em; line-height: 1.5; margin: 0; padding-left: 15px;">
-<li><strong>Identificeer:</strong> Waar in uw proces zitten de kostbare 'trial-and-error'-cycli?</li>
-<li><strong>Activeer:</strong> Ga het gesprek aan met uw data- en R&D-teams.</li>
-<li><strong>Experimenteer:</strong> Start een pilot met één afgebakend, complex probleem.</li>
-<li><strong>Valideer:</strong> Meet de resultaten en bouw de business case.</li>
-</ol>
+<div style="text-align: center;">
+<div style="background: #fff3e0; border-radius: 20px; width: 100px; height: 100px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 3em;">⚖️</div>
+<h3 style="margin: 0; color: #2d3436; font-size: 1.2em;">Slimme Balans</h3>
+<p style="color: #666; margin: 5px 0 0 0; font-size: 0.9em;">Verkennen vs exploiteren</p>
 </div>
+
+<div style="text-align: center;">
+<div style="background: #e3f2fd; border-radius: 20px; width: 100px; height: 100px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 3em;">🚀</div>
+<h3 style="margin: 0; color: #2d3436; font-size: 1.2em;">Sneller Vooruit</h3>
+<p style="color: #666; margin: 5px 0 0 0; font-size: 0.9em;">Efficiënt optimaliseren</p>
+</div>
+
+</div>
+
+<div style="background: linear-gradient(135deg, #00b894 0%, #00cec9 100%); color: white; padding: 25px; border-radius: 15px; margin-top: 50px;">
+<h3 style="margin: 0 0 10px 0; font-size: 1.3em;">🚀 Uw Volgende Stap</h3>
+<p style="margin: 0; font-size: 1.1em;">Identificeer waar in uw logistieke proces kostbare 'trial-and-error'-cycli zitten en start het gesprek met uw data teams.</p>
 </div>
 
 </div>
@@ -729,7 +731,6 @@ In een wereld waar elk experiment telt,
 ## 🎤 Vragen & Discussie
 
 ::: {style="background: #f8f9fa; padding: 30px; border-radius: 15px; border: 2px solid #28a745;"}
-🎤
 
 Bent u er klaar voor om te ontdekken waar Bayesian Optimization uw logistieke operatie kan versterken?
 
@@ -742,7 +743,5 @@ Laten we de discussie openen en uw specifieke uitdagingen en kansen verkennen.
 **Contactgegevens**
 
 HAN Lectoraat Logistiek en Allianties | Karen.Engelvaart@han.nl
-
-Deze presentatie bevat interactieve demo's over Bayesian Optimization
 :::
 
