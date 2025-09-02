@@ -24,47 +24,38 @@ execute:
 ---
 ## Welkom {.center}
 
-**Voor wie:** De logistieke professional die vooruit wil.
+**Bayesian Optimization voor Logistiek**
 
-**Investering:** 30 minuten van uw tijd.
-
-**Resultaat:** Een interactieve ervaring die uw kijk op optimalisatie verandert.
+30 minuten over slimmer optimaliseren.
 
 <div style="text-align: center; font-size: 1.2em; color: #2E86AB; margin-top: 50px;">
-<strong>Welkom bij de volgende stap in optimalisatie.</strong>
+Van trial-and-error naar strategisch testen.
 </div>
 
 
-## 🎯 Wat Neemt u Mee?
-Na dit halfuur bent u in staat om:
+## 🎯 Wat Behandelen We?
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px;">
+<div style="display: flex; justify-content: center; gap: 40px; margin: 50px 0;">
 
-<div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 5px solid #28a745;">
-<h3>🎯 Kansen Identificeren</h3>
-<p>De kostbare 'trial-and-error'-processen in uw organisatie te herkennen en de kansen voor een slimmere aanpak te zien.</p>
+<div style="text-align: center;">
+<div style="background: #f8f9fa; border-radius: 10px; width: 80px; height: 80px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2.5em;">🎯</div>
+<h3 style="margin: 0; font-size: 1.1em;">Het Probleem</h3>
+<p style="color: #666; font-size: 0.9em; margin: 5px 0;">Dure experimenten</p>
 </div>
 
-<div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 5px solid #17a2b8;">
-<h3>🚀 Sneller Resultaat</h3>
-<p>De kracht te doorgronden van een methode die sneller tot betere resultaten leidt, met significant minder experimenten.</p>
+<div style="text-align: center;">
+<div style="background: #f8f9fa; border-radius: 10px; width: 80px; height: 80px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2.5em;">🧠</div>
+<h3 style="margin: 0; font-size: 1.1em;">De Oplossing</h3>
+<p style="color: #666; font-size: 0.9em; margin: 5px 0;">Slimmer testen</p>
 </div>
 
-<div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 5px solid #ffc107;">
-<h3>🗣️ De Juiste Vragen Stellen</h3>
-<p>Een helder, strategisch gesprek te voeren met uw data scientists over de kernprincipes van Bayesian Optimization.</p>
-</div>
-
-<div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 5px solid #dc3545;">
-<h3>⚖️ Strategisch Afwegen</h3>
-<p>De cruciale balans te begrijpen tussen het verkennen van nieuwe mogelijkheden en het benutten van bewezen successen.</p>
+<div style="text-align: center;">
+<div style="background: #f8f9fa; border-radius: 10px; width: 80px; height: 80px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2.5em;">🔄</div>
+<h3 style="margin: 0; font-size: 1.1em;">Het Proces</h3>
+<p style="color: #666; font-size: 0.9em; margin: 5px 0;">Leren en verbeteren</p>
 </div>
 
 </div>
-
-::: {.center}
-*Klaar voor de praktijk: in onze interactieve demo's ervaart u zelf de kracht van slimmer optimaliseren.*
-:::
 
 ## 📋 De Route van Vandaag
 
@@ -111,77 +102,53 @@ zonder een fortuin uit te geven aan experimenten?
 
 :::
 
-## 🎯 De Uitdaging: Kostbare 'Black Box'-Problemen
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px;">
+## 🎯 De Uitdaging: Dure Experimenten
 
-<div>
-<h2 style="color: #dc3545;">🔲 Wat is een 'Black Box'?</h2>
-<div style="background: #f8d7da; padding: 20px; border-radius: 10px; border: 1px solid #f5c6cb;">
-<p><strong>Stelt u zich voor:</strong> nieuwe software voor routeplanning.</p>
-<ul>
-<li>U voert parameters in (capaciteit, levertijden)</li>
-<li>De software presenteert een efficiëntiescore</li>
-<li>De complexe logica áchter die score blijft verborgen</li>
-<li><strong>Het enige wat telt: INPUT → OUTPUT</strong></li>
-</ul>
-</div>
+<div style="text-align: center; margin: 40px 0;">
+
+<div style="background: #f8f9fa; padding: 30px; border-radius: 15px; margin-bottom: 30px;">
+<h2 style="color: #2d3436; margin-top: 0;">🔲 Black Box Systemen</h2>
+<p style="font-size: 1.1em;">U ziet alleen INPUT → OUTPUT<br/>De interne werking blijft verborgen</p>
 </div>
 
-<div>
-<h2 style="color: #fd7e14;">💰 Wat maakt experimenteren duur?</h2>
-<div style="background: #ffeaa7; padding: 20px; border-radius: 10px; border: 1px solid #ffd93d;">
-<p>Iedere test vraagt een investering in:</p>
-<ul>
-<li><strong>Tijd:</strong> Weken voor een pilot, maanden voor een project</li>
-<li><strong>Energie:</strong> Aandacht, operationele verstoring</li>
-<li><strong>Middelen:</strong> Personeel, rekenkracht</li>
-</ul>
-<p style="margin-top: 15px; font-weight: bold; color: #d63031;">❌ Duizenden scenario's testen is vaak simpelweg onmogelijk.</p>
-</div>
+<div style="background: #fff3e0; padding: 30px; border-radius: 15px;">
+<h2 style="color: #2d3436; margin-top: 0;">💰 Kostbare Tests</h2>
+<p style="font-size: 1.1em;">Elke test kost tijd, geld en resources<br/>Alles uitproberen is onmogelijk</p>
 </div>
 
 </div>
 
 ## ⚡ Het Dilemma
 
-<div style="background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%); color: white; padding: 30px; border-radius: 15px; text-align: center; margin-top: 40px;">
-<p style="font-size: 1.3em; margin: 0;">
-U streeft naar het ultieme resultaat, maar weet dat u nooit alle opties kunt testen.<br/>
-Puur gokwerk is inefficiënt. <strong>Het is tijd voor een slimmere strategie.</strong>
+<div style="background: #f8f9fa; padding: 40px; border-radius: 15px; text-align: center; margin: 40px 0;">
+<p style="font-size: 1.4em; margin: 0; color: #2d3436;">
+Hoe vind je het optimum<br/>zonder alles te kunnen testen?
 </p>
-</div>
-
-<div style="text-align: center; margin-top: 30px; font-size: 1.1em; color: #666;">
-<strong>Bayesian Optimization - Laten we ontdekken hoe het werkt →</strong>
 </div>
 
 ## 🧠 Een Strategisch Antwoord: Bayesian Optimization
 
 <div style="text-align: center; margin: 40px 0;">
-<div style="background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); color: white; padding: 30px; border-radius: 15px;">
-<h2 style="margin-top: 0;">🎭 De Twee Pilaren van een Zelflerend Systeem</h2>
-<p style="font-size: 1.2em;">Vergelijk het met een expert die met elk experiment scherpere inzichten krijgt.</p>
+<div style="background: #f8f9fa; padding: 30px; border-radius: 15px;">
+<h2 style="margin-top: 0; color: #2d3436;">🎭 Twee Slimme Componenten</h2>
+<p style="font-size: 1.1em; color: #666;">Samen zorgen ze voor efficiënt leren</p>
 </div>
 </div>
 
 <div style="display: grid; grid-template-columns: 1fr 50px 1fr; gap: 20px; align-items: center; margin-top: 40px;">
 
-<div style="background: #dff0d8; padding: 25px; border-radius: 15px; border: 2px solid #d6e9c6; text-align: center;">
-<h3 style="color: #3c763d; margin-top: 0;">🔮 De Intelligente Voorspeller</h3>
-<p><strong>(Surrogaatmodel)</strong></p>
-<p>Leert van eerdere resultaten en bouwt een aanname op over het totale speelveld.</p>
-<p style="font-style: italic; color: #5a6c5d;">Net als een ervaren manager die feilloos aanvoelt welke routes potentie hebben.</p>
+<div style="background: #f0f8ff; padding: 20px; border-radius: 10px; text-align: center;">
+<h3 style="color: #2d3436; margin-top: 0;">🔮 Intelligente Voorspeller</h3>
+<p>Leert van tests en voorspelt resultaten</p>
 </div>
 
 <div style="text-align: center; font-size: 3em; color: #a29bfe;">
 →
 </div>
 
-<div style="background: #d9edf7; padding: 25px; border-radius: 15px; border: 2px solid #bce8f1; text-align: center;">
-<h3 style="color: #31708f; margin-top: 0;">🎯 De Strategische Beslisser</h3>
-<p><strong>(Acquisitiefunctie)</strong></p>
-<p>Bepaalt welke volgende test de meest waardevolle informatie oplevert.</p>
-<p style="font-style: italic; color: #5a6c7d;">Vindt de balans tussen het verkennen van onbekend terrein en het perfectioneren van wat al goed presteert.</p>
+<div style="background: #fff5f5; padding: 20px; border-radius: 10px; text-align: center;">
+<h3 style="color: #2d3436; margin-top: 0;">🎯 Strategische Beslisser</h3>
+<p>Kiest de meest informatieve volgende test</p>
 </div>
 
 </div>
@@ -192,7 +159,7 @@ Puur gokwerk is inefficiënt. <strong>Het is tijd voor een slimmere strategie.</
 
 <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white; padding: 25px; border-radius: 15px; text-align: center; margin-bottom: 30px;">
 <h2 style="margin: 0; font-size: 1.5em;">De Leerreis van Onzekerheid naar Zekerheid</h2>
-<p style="font-size: 1.1em; margin: 10px 0 0 0;">Observeer hoe de 'Intelligente Voorspeller' met elk nieuw datapunt aan zekerheid wint.</p>
+<p style="font-size: 1.1em; margin: 10px 0 0 0;">De 'Intelligente Voorspeller' wint met elk nieuw datapunt aan zekerheid.</p>
 </div>
 
 ```{python}
@@ -550,95 +517,45 @@ fig_acq.show()
 
 </div>
 
-::: {style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #007bff; margin-top: 20px; font-size: 0.9em;"}
-**💡 De Kern:** Het algoritme balanceert continu tussen verkennen (speelveld in kaart brengen) en exploiteren (goudaders aanboren).
-:::
 
-## 🏭 De Praktijk: De Optimale DC Locatie Vinden
-<p style="text-align: center; font-size: 1.05em; margin: 10px 0 20px 0; color: #666;"><strong>De Case:</strong> Bepaal de ideale DC-locatie, met een budget voor slechts enkele kostbare haalbaarheidsstudies.</p>
+## 🏭 Interactieve Demo
 
-<div style="display: grid; grid-template-columns: 40% 30% 30%; gap: 20px; align-items: start;">
+<div style="text-align: center; margin: 40px 0;">
+
+<img src="bo-optimizer.png" alt="3D Bayesian Optimization Visualization" style="width: 60%; max-width: 500px; border-radius: 8px;">
+
+<p style="margin: 20px 0; font-size: 1.1em;">3D simulatie van DC locatie optimalisatie</p>
+
+<a href="bo-simulator-fast.html" target="_blank" style="display: inline-block; background: #007bff; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 1em;">
+Open Simulator
+</a>
+
+</div>
+
+## 🚛 Toepassingen in Logistiek
+
+<div style="display: flex; justify-content: center; gap: 50px; margin: 50px 0;">
 
 <div style="text-align: center;">
-<img src="bo-optimizer.png" alt="3D Bayesian Optimization Visualization" style="width: 100%; max-width: 420px; border-radius: 8px; box-shadow: 0 3px 12px rgba(0,0,0,0.1);">
-<div style="margin-top: 12px;">
-<a href="bo-simulator-fast.html" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #00b894 0%, #00cec9 100%); color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: 0.95em; font-weight: bold; box-shadow: 0 3px 12px rgba(0, 184, 148, 0.3);">
-🚀 Start de Simulator
-</a>
-<br><span style="font-size: 0.7em; color: #666;">Opent in een nieuw venster</span>
-</div>
+<div style="background: #f8f9fa; border-radius: 15px; width: 80px; height: 80px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2.5em;">🚚</div>
+<h3 style="margin: 0; font-size: 1.1em; color: #2d3436;">Route Optimalisatie</h3>
+<p style="color: #666; font-size: 0.9em; margin: 5px 0;">Algoritme parameters</p>
 </div>
 
-<div>
-<h3 style="color: #00529b; margin: 0 0 10px 0; font-size: 1em;">🔍 Wat u gaat zien:</h3>
-<div style="font-size: 0.72em; line-height: 1.3;">
-<div style="margin-bottom: 6px;"><span style="color: #4682B4;">●</span> <strong>Blauwe cilinders:</strong> Uw klantlocaties</div>
-<div style="margin-bottom: 6px;"><span style="color: #2ecc71;">●</span> <strong>Groen oppervlak:</strong> De kostenvoorspelling van de AI</div>
-<div style="margin-bottom: 6px;"><span style="color: #ff6347;">●</span> <strong>Rood raster:</strong> De (verborgen) realiteit</div>
-<div><span style="color: #9370db;">●</span> <strong>Paars oppervlak:</strong> Waar de AI vervolgens wil testen</div>
-</div>
+<div style="text-align: center;">
+<div style="background: #f8f9fa; border-radius: 15px; width: 80px; height: 80px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2.5em;">🏭</div>
+<h3 style="margin: 0; font-size: 1.1em; color: #2d3436;">Magazijn Configuratie</h3>
+<p style="color: #666; font-size: 0.9em; margin: 5px 0;">Robotica instellingen</p>
 </div>
 
-<div>
-<h3 style="color: #00529b; margin: 0 0 10px 0; font-size: 1em;">⚡ Experimenteer zelf:</h3>
-<div style="font-size: 0.72em; line-height: 1.3;">
-• Start de simulatie met <strong>'Initialize/Reset'</strong><br>
-• Voer het leerproces stap voor stap uit<br>
-• Pas de 'Exploration'-schuif aan<br>
-• Wissel tussen voorspelling en realiteit<br>
-• Ontdek hoe de AI het optimum vindt!
-</div>
+<div style="text-align: center;">
+<div style="background: #f8f9fa; border-radius: 15px; width: 80px; height: 80px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2.5em;">⛓️</div>
+<h3 style="margin: 0; font-size: 1.1em; color: #2d3436;">Netwerk Ontwerp</h3>
+<p style="color: #666; font-size: 0.9em; margin: 5px 0;">DC locaties</p>
 </div>
 
 </div>
 
-<div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white; padding: 12px 25px; border-radius: 8px; text-align: center; margin-top: 20px;">
-<strong>💡 Cruciaal Inzicht:</strong> U ziet live hoe het algoritme de strategische balans vindt tussen het verkennen van onbekend terrein en het benutten van veelbelovende locaties. Dát is de kern van efficiënt optimaliseren.
-</div>
-
-## 🚛 Uw Strategische Voorsprong in de Logistiek
-
-<div style="background: linear-gradient(135deg, #00b894 0%, #00cec9 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px;">
-<h2 style="margin-top: 0;">Minder Experimenten, Meer Resultaat</h2>
-<p style="font-size: 1.1em; margin: 0;">De formule voor efficiëntie, kostenbesparing en een versneld inzicht</p>
-</div>
-
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 25px 0;">
-
-<div style="background: #fff5f5; padding: 15px; border-radius: 12px; border: 2px solid #fc8181; text-align: center;">
-<div style="font-size: 2.2em; margin-bottom: 10px;">🤖</div>
-<h3 style="color: #e53e3e; font-size: 1.1em; margin: 0 0 8px 0;">Perfectie in Voorspelling</h3>
-<p style="font-size: 0.9em; margin: 0;">Vind de optimale parameters voor uw demand forecasting- en ML-modellen.</p>
-</div>
-
-<div style="background: #f0fff4; padding: 15px; border-radius: 12px; border: 2px solid #68d391; text-align: center;">
-<div style="font-size: 2.2em; margin-bottom: 10px;">🚚</div>
-<h3 style="color: #38a169; font-size: 1.1em; margin: 0 0 8px 0;">Efficiëntie op de Weg</h3>
-<p style="font-size: 0.9em; margin: 0;">Kalibreer uw route-algoritmes voor minimale brandstofkosten en maximale punctualiteit.</p>
-</div>
-
-<div style="background: #fffaf0; padding: 15px; border-radius: 12px; border: 2px solid #f6ad55; text-align: center;">
-<div style="font-size: 2.2em; margin-bottom: 10px;">🏭</div>
-<h3 style="color: #dd6b20; font-size: 1.1em; margin: 0 0 8px 0;">Slimme Magazijnen</h3>
-<p style="font-size: 0.9em; margin: 0;">Optimaliseer de configuratie van uw robotica en sorteerstrategieën via snelle, effectieve simulaties.</p>
-</div>
-
-<div style="background: #f7faff; padding: 15px; border-radius: 12px; border: 2px solid #63b3ed; text-align: center;">
-<div style="font-size: 2.2em; margin-bottom: 10px;">⛓️</div>
-<h3 style="color: #3182ce; font-size: 1.1em; margin: 0 0 8px 0;">Netwerkontwerp van de Toekomst</h3>
-<p style="font-size: 0.9em; margin: 0;">Identificeer de ideale DC-locaties, gebaseerd op een perfecte balans tussen kosten en serviceniveau.</p>
-</div>
-
-</div>
-
-## 📦 De Kern van de Zaak
-
-::: {.center style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 15px;"}
-In een wereld waar elk experiment telt,
-
-**is slim optimaliseren geen luxe meer. Het is een strategische noodzaak om uw concurrentiepositie te versterken.**
-
-:::
 
 ## 🚀 De Volgende Stap: AI die Zelf Strategieën Ontwikkelt
 
@@ -730,18 +647,14 @@ In een wereld waar elk experiment telt,
 
 ## 🎤 Vragen & Discussie
 
-::: {style="background: #f8f9fa; padding: 30px; border-radius: 15px; border: 2px solid #28a745;"}
+<div style="text-align: center; margin: 50px 0;">
+<p style="font-size: 1.3em; color: #2d3436;">Vragen over Bayesian Optimization?</p>
+</div>
 
-Bent u er klaar voor om te ontdekken waar Bayesian Optimization uw logistieke operatie kan versterken?
+## Dank je wel {.center}
 
-Laten we de discussie openen en uw specifieke uitdagingen en kansen verkennen.
-:::
-
-## 🙏 Hartelijk Dank {.center}
-
-::: {.center style="padding: 40px; background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white; border-radius: 15px;"}
-**Contactgegevens**
-
-HAN Lectoraat Logistiek en Allianties | Karen.Engelvaart@han.nl
-:::
+<div style="text-align: center; padding: 40px;">
+<p style="font-size: 1.2em; margin-bottom: 20px;">HAN Lectoraat Logistiek en Allianties</p>
+<p style="color: #666;">Karen.Engelvaart@han.nl</p>
+</div>
 
